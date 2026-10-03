@@ -5,6 +5,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.9.2] - 2026-10-03
+
+### Changed
+
+- README feature list refreshed: dropped the stale "(v0.7.3)" heading
+  label, promoted the v0.9.0 load view to a highlighted bullet
+  ("runtime per usage intensity" story), added the missing
+  Settings-dialog bullet (v0.8.0) and the easter-egg update button /
+  load line to the tooltip bullet, and synced the context-menu bullet
+  with the actual menu (autostart, Settings…, update check, reset
+  size, reload, exit).
+
 ## [0.9.1] - 2026-10-03
 
 ### Added

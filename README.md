@@ -22,7 +22,7 @@ battery indicator.*
 
 ---
 
-## Features (v0.7.3)
+## Features
 
 - Floating, frameless, transparent status bar (always-on-top)
 - Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
@@ -30,14 +30,16 @@ battery indicator.*
   (`SYSTEM_BATTERY_STATE`: mWh capacities + mW drain rate) — plausible
   within seconds after unplugging, counting down to a configurable
   soft-minimum reserve instead of 0 % (see `docs/BATTERY_ESTIMATION.md`)
+- **Load view — runtime per usage intensity**: a two-row display
+  showing 1/5/15-minute CPU load averages (Windows' stand-in for the
+  Unix load average, sampled via `GetSystemTimes`) and underneath the
+  remaining runtime estimated *for each load level* — "10 more emails
+  or 20 min of YouTube?" becomes a number. Powered by a continuously
+  learning load→drain regression (`DrainModel` in `estimate.py`,
+  persisted in `stats.local.json`, improves across restarts)
 - **Click-to-cycle display**: left-click on the bar toggles
   `default → time → percent → rate → capacity → health → load`
   (BatteryBar-style)
-- **Load view**: a two-row display with 1/5/15-minute CPU load
-  averages (Windows' stand-in for the Unix load average, sampled via
-  `GetSystemTimes`) — and underneath the remaining runtime estimated
-  *for each load level*, powered by a continuously learning
-  load→drain regression (`DrainModel`, persisted in `stats.local.json`)
 - **Battery health view**: real wear %, cycle count and true
   full-charge capacity from `root\wmi` battery classes — the values
   that `Win32_Battery` hides
@@ -46,9 +48,14 @@ battery indicator.*
   HP's WMI interface (needs admin once, UAC prompt) and the bar shows
   it in health mode as `BHM: <mode>`
 - **Hover tooltip**: full battery details (machine, capacities, wear,
-  cycles, voltage, estimate source) after ~400 ms on the bar —
-  held for ~5 s it morphs into an ASCII decrypt animation revealing
-  the version number plus a clickable GitHub link (easter egg)
+  cycles, voltage, estimate source, load averages) after ~400 ms on
+  the bar — held for ~5 s it morphs into an ASCII decrypt animation
+  revealing the version number plus a clickable GitHub link; frozen
+  builds additionally run a fresh release check there and offer a
+  one-click "update & restart" button (easter egg)
+- **Settings dialog**: right-click → "Settings…" opens a GUI for the
+  bar toggles, the update-check preference and a placeholder section
+  for the planned desktop-overlay providers
 - **Resizable**: drag the right/bottom edge or the corner; the size is
   remembered, "Reset size" restores the default
 - **Autostart**: "Start with Windows" in the context menu (per-user
@@ -62,7 +69,8 @@ battery indicator.*
 - Color-coded fill per state (configurable)
 - Freely draggable – position is remembered
 - Context menu (right click): always-on-top, click-through mode,
-  position lock, config reload, exit
+  position lock, autostart, Settings…, reset size, update check,
+  reload settings, exit
 - Warning popup when the low/critical thresholds are crossed
 - Fully configurable via JSON (colors, thresholds, format, intervals)
 - Logging to `logs/batterybar.log`
