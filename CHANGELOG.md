@@ -5,6 +5,32 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.4.2] - 2026-10-03
+
+### Fixed
+
+- **Wildly swinging runtime estimates** (user report: 7:49 then 3:52
+  while BatteryBar showed a stable ~5:20 at the same charge level).
+  Root cause: the slope estimator tracked
+  `min(remaining_mwh, percent·max/100)` — the percent signal is
+  quantized to ~1% steps (≈537 mWh on this pack), so every percent
+  tick injected a huge fake delta into the 5-minute window and the
+  rate estimate oscillated. The polluted rates also fed the learned
+  EWMA profile.
+- **Session-average rate replaces the sliding window**: the estimator
+  now measures `total drop since unplug / elapsed time` from
+  `remaining_mwh` only (smooth ~tens-of-mWh fuel-gauge ticks; the
+  percent fallback is used solely when no mWh data exists, never
+  merged). The session average converges to the true mean drain —
+  BatteryBar's statistical-mode behavior — and gets more stable the
+  longer the session runs.
+- **Learning gate**: a session rate is folded into the EWMA profile
+  only after ≥ 90 s elapsed **and** ≥ 30 mWh real drop — single
+  gauge ticks can no longer poison the learned rate.
+- **Stats migration**: `config/stats.local.json` now carries a
+  `version` field; values trained by the old algorithm are discarded
+  automatically on first read.
+
 ## [0.4.1] - 2026-10-03
 
 ### Changed

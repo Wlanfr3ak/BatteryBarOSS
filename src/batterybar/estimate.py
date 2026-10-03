@@ -3,7 +3,7 @@
 See docs/BATTERY_ESTIMATION.md for the research behind this order
 (mirrors BatteryBar's fallbacks):
   1. fuel-gauge rate: usable_mwh / |rate_mw|   (hardware-reported drain)
-  2. session slope: own rate from capacity deltas over a 5-min window
+  2. session rate: own rate since unplug (total drop / elapsed time)
   3. learned rate: persisted avg drain from previous discharge sessions
      (EWMA, config/stats.local.json) - instant estimate after unplug,
      like BatteryBar's historical profile
@@ -14,32 +14,40 @@ Notes:
 - rate_mw == None means the fuel gauge reports no rate at all
   (BATTERY_UNKNOWN_RATE) - the only path to an immediate estimate is
   then the learned rate.
+- The session rate intentionally uses the WHOLE discharge session
+  (unplug -> now), not a sliding window: the battery percent signal is
+  quantized to ~1% steps (>>500 mWh on a ~54 Wh pack), so a short
+  window amplifies step noise into wild estimate swings. The session
+  average converges to the true mean drain - BatteryBar's statistical
+  mode behavior.
 - All estimates count down to `soft_min_percent` of capacity, not 0%.
 """
 from __future__ import annotations
 
 import json
 import time
-from collections import deque
 from pathlib import Path
 
 from .battery import BatteryStatus, PowerDetails
 
 _LEARN_ALPHA = 0.3  # EWMA weight of the newest session rate
 _PERSIST_INTERVAL_S = 60.0
+_MIN_SESSION_S = 90.0  # minimum elapsed time before trusting a session rate
+_MIN_DROP_MWH = 30.0  # minimum mWh drop before folding into the learned rate
+_STATS_VERSION = 2  # bump to discard stats trained by older algorithms
 
 
 class TimeEstimator:
     def __init__(
         self,
         soft_min_percent: float = 5.0,
-        window_s: float = 300.0,
+        window_s: float = 300.0,  # kept for config compatibility, unused
         stats_path: Path | None = None,
     ) -> None:
         self.soft_min = soft_min_percent / 100.0
         self.window_s = window_s
         self._stats_path = stats_path
-        self._samples: deque[tuple[float, float]] = deque()
+        self._session_start: tuple[float, float] | None = None
         self._learned_mw = self._load_rate()
         self._last_persist = 0.0
         self.source: str | None = None
@@ -51,6 +59,8 @@ class TimeEstimator:
             return None
         try:
             data = json.loads(Path(self._stats_path).read_text(encoding="utf-8"))
+            if data.get("version") != _STATS_VERSION:
+                return None  # discard stats trained by older algorithms
             value = float(data.get("avg_drain_mw", 0))
             return value if value > 0 else None
         except (OSError, json.JSONDecodeError, ValueError, TypeError):
@@ -64,6 +74,7 @@ class TimeEstimator:
             return
         self._last_persist = now
         payload = {
+            "version": _STATS_VERSION,
             "avg_drain_mw": round(self._learned_mw, 1),
             "updated": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
@@ -75,7 +86,7 @@ class TimeEstimator:
             pass
 
     def reset(self) -> None:
-        self._samples.clear()
+        self._session_start = None
         self.source = None
 
     # ------------------------------------------------------------- estimation
@@ -92,10 +103,8 @@ class TimeEstimator:
 
         qty, floor = self._quantity(status, details)
         now = time.monotonic()
-        if qty is not None:
-            self._samples.append((now, qty))
-            while self._samples and now - self._samples[0][0] > self.window_s:
-                self._samples.popleft()
+        if qty is not None and self._session_start is None:
+            self._session_start = (now, qty)
 
         # 1) hardware-reported drain rate
         if (
@@ -108,17 +117,18 @@ class TimeEstimator:
             self.source = "rate"
             return int(usable / -details.rate_mw * 3600)
 
-        # 2) own slope from this discharge session
-        slope = self._session_slope(status, details)
-        if slope is not None:
-            rate, usable = slope  # rate in qty/s, usable = qty - floor
-            if details is not None and details.max_mwh > 0:
+        # 2) session-average rate since unplug (BatteryBar's statistical mode)
+        session = self._session_rate(status, details, now)
+        if session is not None:
+            rate, usable, drop = session
+            if (
+                details is not None
+                and details.max_mwh > 0
+                and drop >= _MIN_DROP_MWH
+            ):
                 self._learn_mw(rate * 3600)  # mWh/s -> mWh/h == mW
-            if usable <= 0:
-                self.source = "slope"
-                return 0
             self.source = "slope"
-            return int(usable / rate)
+            return max(0, int(usable / rate))
 
         # 3) learned average drain rate (instant estimate after unplug)
         if self._learned_mw and details is not None and details.max_mwh > 0:
@@ -139,35 +149,34 @@ class TimeEstimator:
     def _quantity(
         self, status: BatteryStatus, details: PowerDetails | None
     ) -> tuple[float | None, float]:
-        """Quantity to track + soft-min floor.
+        """Quantity to track + soft-min floor, in the same unit.
 
-        Prefers reported mWh, but merges with the percent-derived capacity
-        (min) so drain is detected even while the fuel gauge still reports
-        'full'. Returns (quantity, floor) in the same unit.
+        Prefers the fuel gauge's remaining_mwh (smooth, ~tens-of-mWh
+        increments). Only falls back to percent when no mWh data exists -
+        never merges the two, because the coarse percent steps would
+        inject huge fake deltas into the rate.
         """
         if details is not None and details.max_mwh > 0:
-            floor = self.soft_min * details.max_mwh
-            qty = float(details.remaining_mwh)
-            if status.percent is not None:
-                qty = min(qty, status.percent / 100.0 * details.max_mwh)
-            return qty, floor
+            return float(details.remaining_mwh), self.soft_min * details.max_mwh
         if status.percent is not None:
             return float(status.percent), self.soft_min * 100.0
         return None, 0.0
 
-    def _session_slope(
-        self, status: BatteryStatus, details: PowerDetails | None
-    ) -> tuple[float, float] | None:
-        """Discharge rate (qty/s) and usable qty from the sample window."""
-        if len(self._samples) < 2:
+    def _session_rate(
+        self, status: BatteryStatus, details: PowerDetails | None, now: float
+    ) -> tuple[float, float, float] | None:
+        """Average discharge rate (qty/s), usable qty, total drop."""
+        if self._session_start is None:
             return None
-        t0, q0 = self._samples[0]
-        t1, q1 = self._samples[-1]
-        dt = t1 - t0
-        if dt < 30 or q1 >= q0:
+        t0, q0 = self._session_start
+        qty, floor = self._quantity(status, details)
+        if qty is None:
             return None
-        _, floor = self._quantity(status, details)
-        return (q0 - q1) / dt, q1 - floor
+        dt = now - t0
+        drop = q0 - qty
+        if dt < _MIN_SESSION_S or drop <= 0:
+            return None
+        return drop / dt, qty - floor, drop
 
     def _learn_mw(self, session_rate_mw: float) -> None:
         if session_rate_mw <= 0:

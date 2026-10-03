@@ -130,6 +130,11 @@ Left-click (< 6 px) cycles `window.display_mode`; drag moves the bar.
   instant estimate — exactly like BatteryBar's historical profile.
 - `q1 - floor <= 0` edge: estimates count to the soft-min floor, so
   "0:00" near the reserve is correct behavior, not a bug.
+- **Percent quantization poisons rate math** (v0.4.2): never merge
+  `percent·max/100` into the mWh stream — 1% steps are ~537 mWh fake
+  deltas that made estimates swing 7:49↔3:52. Track `remaining_mwh`
+  only; use session-average (unplug→now), not a short sliding window.
+  Learned stats carry a `version` field for algorithm migrations.
 - **setupapi + ctypes**: always set `restype`/`argtypes` or 64-bit
   handles get truncated to c_int (err 6). More importantly:
   `SetupDiEnumDeviceInterfaces` may simply return NO battery interface

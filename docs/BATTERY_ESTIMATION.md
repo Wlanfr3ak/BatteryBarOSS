@@ -94,12 +94,17 @@ Estimator order (while discharging), mirroring BatteryBar's fallbacks:
    `0x80000000` sentinel) and `MaxCapacity > 0`
    → `t = (RemainingCapacity − soft_min·MaxCapacity) / |RateOfDrain|`.
    Soft minimum = `estimation.soft_min_percent` (default 5 %).
-2. **Session slope** ("(Estimated)" equivalent): if the battery
-   reports no rate, fit the slope of
-   `min(remaining_mWh, percent·max/100)` over a sliding 5-minute window
-   → `t = usable / slope`. Time is prefixed `~` in the bar.
-   The session rate is simultaneously folded into the learned rate
-   (EWMA α=0.3) — v0.3.1.
+2. **Session-average rate** ("(Estimated)" equivalent): if the battery
+   reports no rate, the estimator measures `total drop / elapsed time`
+   **over the whole discharge session** (unplug → now), from
+   `remaining_mWh` only → `t = usable / rate`. Time is prefixed `~`.
+   v0.4.2 replaced the earlier 5-minute sliding window of
+   `min(mWh, percent·max/100)`: the percent signal is quantized to ~1%
+   steps (≈537 mWh here), so every percent tick injected a huge fake
+   delta and the displayed time swung wildly (7:49 ↔ 3:52 at ~5:20
+   real). The session average converges to the true mean drain —
+   BatteryBar's statistical-mode behavior. The rate is folded into the
+   learned EWMA (α=0.3) once ≥ 90 s and ≥ 30 mWh drop have passed.
 3. **Learned rate** (v0.3.1, = BatteryBar's "statistical" mode, lite):
    persisted average drain `avg_drain_mw` from previous sessions
    (`config/stats.local.json`, gitignored) → instant plausible estimate
