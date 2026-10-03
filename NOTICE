@@ -1,0 +1,20 @@
+BatteryBar OSS
+Copyright (c) 2026 BatteryBar OSS Contributors
+
+AI AUTHORSHIP DISCLOSURE
+------------------------
+This project was generated with the AI coding agent
+
+    Devin (https://devin.ai) - Cognition AI, model SWE-2 High
+
+under human direction and review (maintainer: Wlanfr3ak).
+
+Per AGENTS.md section 12 this disclosure must remain clearly visible
+and may not be removed without an explicit maintainer decision
+documented in CHANGELOG.md.
+
+THIRD-PARTY REFERENCES
+----------------------
+Inspired by "BatteryBar (Pro)" (Osiris Development, discontinued) -
+a complete rewrite; no third-party code, graphics or themes reused.
+See docs/RESEARCH.md for all analysed references and their licenses.

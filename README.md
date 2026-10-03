@@ -1,5 +1,9 @@
 # BatteryBar OSS
 
+> **AI disclosure:** this project was generated with the AI coding agent
+> **[Devin](https://devin.ai) (Cognition AI, model SWE-2 High)** under
+> human direction and review. See `NOTICE` and `AGENTS.md` §12.
+
 A floating battery status bar for Windows 11 – an open-source replacement for
 the discontinued **BatteryBar (Pro)**. Designed to grow into a
 Conky/BGInfo-style desktop info widget.

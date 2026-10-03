@@ -124,3 +124,18 @@ At the start of every session, read this file and `PROJECT_MEMORY.md` first.
 - Third-party resources (icons, code snippets, themes) only with an
   OSS-compatible license and only with a source/license note in
   `docs/DEPENDENCIES.md` or `docs/RESEARCH.md`.
+
+## 12. AI authorship disclosure (mandatory)
+
+- This project was **created with AI assistance** and that fact must
+  remain **clearly visible** at all times.
+- The AI used is: **Devin (Cognition AI), model SWE-2 High**.
+- The disclosure must appear in:
+  - `README.md` – prominent block near the top
+  - `NOTICE` – dedicated attribution file at repo root
+  - the application's context menu header (version line)
+  - commit messages – footer `Generated with [Devin](https://devin.ai)`
+- If another AI contributes substantially in the future, the disclosure
+  must name it additionally.
+- The disclosure must not be removed, hidden or minimized without an
+  explicit maintainer decision documented in `CHANGELOG.md`.

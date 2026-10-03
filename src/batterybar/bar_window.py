@@ -157,6 +157,10 @@ class BarWindow:
             label=f"{__app_name__} v{__version__}",
             state="disabled",
         )
+        menu.add_command(
+            label="built with Devin (SWE-2 High)",
+            state="disabled",
+        )
         menu.add_separator()
         menu.add_checkbutton(
             label="Always on top",

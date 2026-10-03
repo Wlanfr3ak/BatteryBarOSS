@@ -28,6 +28,7 @@ uptime, ...).
 | 2026-10-03 | Click-through toggled via global hotkey `Ctrl+Alt+B` (GetAsyncKeyState polling, no RegisterHotKey – Tk would never see WM_HOTKEY otherwise); `Ctrl+Alt+Q` = quit | Otherwise the bar would be unreachable in click-through mode. |
 | 2026-10-03 | Startup toast when `click_through` is loaded from config (v0.1.2) | Prevents silent lockout – user reported unclickable bar after restart. |
 | 2026-10-03 | GitHub remote via **SSH** (`~/.ssh/fabian` key registered on GitHub), branch `main` | User chose SSH over HTTPS+GCM. |
+| 2026-10-03 | **Mandatory AI disclosure** (AGENTS.md §12): marked as generated with **Devin (Cognition AI), model SWE-2 High** — in README top block, `NOTICE`, app menu header, commit footers | User requirement: AI authorship must stay clearly visible. |
 
 ## Environment facts (dev machine)
 

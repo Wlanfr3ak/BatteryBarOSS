@@ -5,6 +5,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.2.1] - 2026-10-03
+
+### Added
+
+- **Mandatory AI authorship disclosure** (maintainer decision): the
+  project must remain clearly marked as AI-generated, naming the tool
+  used — **Devin (Cognition AI), model SWE-2 High**:
+  - New `AGENTS.md` §12 defines the rule and required locations
+    (README top block, `NOTICE` file, app context menu, commit footer)
+  - `NOTICE` file at repo root: AI authorship + third-party references
+  - `README.md`: prominent disclosure blockquote at the top
+  - Context menu header now shows "built with Devin (SWE-2 High)"
+
 ## [0.2.0] - 2026-10-03
 
 ### Changed
