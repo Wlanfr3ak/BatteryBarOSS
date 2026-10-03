@@ -145,3 +145,20 @@ At the start of every session, read this file and `PROJECT_MEMORY.md` first.
   must name it additionally.
 - The disclosure must not be removed, hidden or minimized without an
   explicit maintainer decision documented in `CHANGELOG.md`.
+
+## 13. Legal pages (website)
+
+- `batterybaross.com` is operated from Germany — the site **must** keep a
+  DDG-compliant imprint (`site/impressum.html`) and a GDPR privacy
+  notice (`site/datenschutz.html`), linked in the footer of every page.
+- Operator identity (name, c/o address) is maintained in
+  `PROJECT_MEMORY.md` — if it changes, update the legal pages in the
+  same commit.
+- The privacy notice must truthfully cover what the site does: GitHub
+  Pages hosting (GitHub processes visitor IPs in server logs), the
+  client-side `api.github.com` fetch for release data, no cookies /
+  no tracking / no webfonts. If the site gains forms, analytics or
+  embeds, the notice must be updated accordingly — same commit.
+- Both legal texts are kept in **German** (the legally relevant
+  language for a German-operated site); this is an exception to the
+  English-only rule in section 7.

@@ -5,6 +5,30 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.8.2] - 2026-10-03
+
+### Added
+
+- Legal pages for the website (German-operated domain):
+  - `site/impressum.html` — DDG §5 imprint with the operator's
+    c/o address, GitHub-Issues contact channel, MStV §18
+    responsibility line, liability disclaimers.
+  - `site/datenschutz.html` — GDPR notice: GitHub Pages hosting
+    (GitHub server logs / EU-US DPF), the client-side
+    `api.github.com` release fetch, explicit "no cookies / tracking /
+    forms / webfonts", the app's consent-gated update check, data
+    subject rights incl. the competent supervisory authority (ULD SH).
+  - Footer links to both pages on every site page.
+- `AGENTS.md` §13 "Legal pages": maintenance rules — imprint/privacy
+  are mandatory, operator identity lives in PROJECT_MEMORY.md, the
+  notice must be updated in the same commit whenever site behaviour
+  changes, legal texts stay in German.
+
+### Changed
+
+- Site CSS extracted from inline `<style>` to `site/style.css`, shared
+  by all pages (index + both legal pages).
+
 ## [0.8.1] - 2026-10-03
 
 ### Changed
