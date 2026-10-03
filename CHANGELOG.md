@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.9.3] - 2026-10-03
+
+### Added
+
+- `docs/loadview.svg`: graphical mock of the load view in the website
+  style — dark bar with 53 % fill, two monospace rows (load averages +
+  per-load runtime) and three scenario chips (Rendering/YouTube/Emails
+  @ load → remaining time). Embedded under the load-view bullet in
+  `README.md` and in `docs/BATTERY_ESTIMATION.md` §5 so the feature
+  reads graphically on GitHub, matching the website story section.
+
 ## [0.9.2] - 2026-10-03
 
 ### Changed

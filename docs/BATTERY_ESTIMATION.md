@@ -132,6 +132,8 @@ load 1/5/15m  42%  28%  15%
 batt @ load   ~0:55  ~1:40  ~3:05
 ```
 
+![Load view: runtime per usage intensity](loadview.svg)
+
 Windows has no Unix load average (the runnable-queue length is not
 exposed), so `sysload.py` samples CPU utilisation via `GetSystemTimes`
 deltas every UI tick (~1 Hz) and keeps a rolling 15-min history

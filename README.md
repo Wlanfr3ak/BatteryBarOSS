@@ -37,6 +37,8 @@ battery indicator.*
   or 20 min of YouTube?" becomes a number. Powered by a continuously
   learning load→drain regression (`DrainModel` in `estimate.py`,
   persisted in `stats.local.json`, improves across restarts)
+
+  ![Load view: remaining runtime per load level](docs/loadview.svg)
 - **Click-to-cycle display**: left-click on the bar toggles
   `default → time → percent → rate → capacity → health → load`
   (BatteryBar-style)
