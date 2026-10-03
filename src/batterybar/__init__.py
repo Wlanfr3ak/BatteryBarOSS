@@ -3,5 +3,5 @@
 Single source of truth for the project version (see AGENTS.md section 1).
 """
 
-__version__ = "0.8.3"
+__version__ = "0.8.4"
 __app_name__ = "BatteryBar OSS"
