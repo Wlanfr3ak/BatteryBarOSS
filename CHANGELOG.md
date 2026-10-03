@@ -5,6 +5,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.7.4] - 2026-10-03
+
+### Added
+
+- `site/robots.txt` — allow-all + sitemap pointer for the landing page.
+
+### Fixed
+
+- Pages deployment: re-running the same failed `pages` workflow run
+  accumulates duplicate `github-pages` artifacts (`upload-pages-artifact`
+  runs again per attempt) and `deploy-pages` then aborts with
+  "Multiple artifacts named github-pages". Fix is a *fresh* workflow
+  run — this push provides it; documented in PROJECT_MEMORY.md.
+
 ## [0.7.3] - 2026-10-03
 
 ### Added

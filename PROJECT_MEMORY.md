@@ -77,6 +77,9 @@ uptime, ...).
   deployed by `.github/workflows/pages.yml` on pushes to `main`
   (requires repo Settings → Pages → Source: "GitHub Actions").
   Screenshot is copied from `docs/` at deploy time — keep it there.
+  Gotcha: never "Re-run" a failed pages job — each attempt adds another
+  `github-pages` artifact and `deploy-pages` then fails with
+  "Multiple artifacts". Push to `site/` (or dispatch) for a fresh run.
 - SSH auth: key `~/.ssh/fabian` (ed25519, registered on GitHub 2026-10-03);
   `~/.ssh/config` contains `Host github.com` with
   `IdentityFile ~/.ssh/fabian` + `IdentitiesOnly yes`
