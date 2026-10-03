@@ -37,9 +37,36 @@
   }
   .note b { color: var(--text); }
   .note code { color: var(--text); }
+  .ghcallout {
+    margin-top: 26px; padding: 14px 20px; border-radius: 8px;
+    background: var(--panel); border: 1px solid var(--accent);
+    font-size: 1.02rem;
+  }
+  .ghcallout a { color: var(--accent); font-weight: 700; }
+  .shotwrap {
+    position: relative; max-width: 520px; margin: 0 auto;
+  }
+  .shotwrap figcaption {
+    margin-top: 10px; color: var(--dim); font-size: 0.82rem;
+    text-align: center;
+  }
+  .tag {
+    position: absolute; left: 8px; transform: translateY(-50%);
+    padding: 2px 10px; border-radius: 11px; font-size: 0.72rem;
+    background: rgba(20,20,20,.88); border: 1px solid var(--border);
+    color: var(--text); white-space: nowrap;
+  }
+  .tag.ours {
+    background: var(--accent); border-color: var(--accent);
+    color: #0b1a0c; font-weight: 700;
+  }
   section { margin-top: 56px; }
   h2 { font-size: 1.3rem; margin-bottom: 14px; }
-  .shot { width: 100%; border: 1px solid var(--border); border-radius: 8px; }
+  .shot {
+    display: block; width: 100%;
+    border: 1px solid var(--border); border-radius: 8px;
+    image-rendering: pixelated;  /* crisp upscale of the small UI shot */
+  }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
   .card h3 { font-size: 0.95rem; margin-bottom: 6px; }
@@ -61,6 +88,12 @@
       <a class="btn ghost" href="https://github.com/Wlanfr3ak/BatteryBarOSS">
         GitHub repository<small>source, docs &amp; issues</small></a>
     </div>
+    <p class="ghcallout">
+      ⭐ Found a bug or have an idea?
+      <a href="https://github.com/Wlanfr3ak/BatteryBarOSS/issues">Open an issue on GitHub</a> —
+      the full documentation lives in
+      <a href="https://github.com/Wlanfr3ak/BatteryBarOSS">the repository</a>.
+    </p>
     <p class="note">
       <b>Windows SmartScreen:</b> the binaries are not code-signed yet, so
       the first launch may show a blue <i>"Windows protected your PC"</i>
@@ -75,8 +108,14 @@
 
   <section>
     <h2>One bar, everything that matters</h2>
-    <img class="shot" src="screenshot-compare.jpg"
-         alt="BatteryBar OSS (top), original BatteryBar (middle), Windows tray (bottom)">
+    <figure class="shotwrap">
+      <img class="shot" src="screenshot-compare.jpg"
+           alt="BatteryBar OSS (top), original BatteryBar (middle), Windows tray (bottom)">
+      <span class="tag ours" style="top:16%">BatteryBar OSS — this project</span>
+      <span class="tag" style="top:50%">BatteryBar Pro (original)</span>
+      <span class="tag" style="top:84%">Windows 11 tray</span>
+      <figcaption>Same battery, three displays — ours is the top one.</figcaption>
+    </figure>
   </section>
 
   <section>

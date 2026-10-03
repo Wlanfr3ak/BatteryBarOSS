@@ -5,6 +5,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.8.1] - 2026-10-03
+
+### Changed
+
+- `site/index.html` website polish: comparison screenshot rendered
+  smaller (~480 px) with `image-rendering: pixelated` for a crisp
+  upscale of the 174×149 source, plus overlay tags directly on the
+  image marking the three bars ("BatteryBar OSS — this project" in
+  accent green on the top bar, plain tags for BatteryBar Pro and the
+  Windows tray) and a short caption underneath.
+- Website hero: added a prominent GitHub callout box in the visible
+  area — "open an issue" link + pointer that all documentation lives
+  in the repository.
+
 ## [0.8.0] - 2026-10-03
 
 ### Added
