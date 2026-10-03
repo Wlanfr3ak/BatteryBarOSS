@@ -7,6 +7,7 @@ import random
 import threading
 import time
 import tkinter as tk
+import webbrowser
 from tkinter import messagebox
 import winsound
 
@@ -31,6 +32,7 @@ _MIN_W, _MIN_H = 140, 18
 _MAX_W, _MAX_H = 1200, 160
 _TOOLTIP_DELAY_MS = 400
 _TOOLTIP_ANIM_DELAY_MS = 5000  # hover duration before the ASCII animation
+_TOOLTIP_HIDE_GRACE_MS = 250  # lets the pointer travel onto the tooltip
 _TOOLTIP_ANIM_FRAMES = 16
 _TOOLTIP_ANIM_FRAME_MS = 70
 _ANIM_POOL = "!<>-_\\/[]{}=+*^?#%&@"
@@ -84,6 +86,8 @@ class BarWindow:
         self._tooltip: tk.Toplevel | None = None
         self._tooltip_after: str | None = None
         self._tooltip_label: tk.Label | None = None
+        self._tooltip_link: tk.Label | None = None
+        self._tooltip_hide_after: str | None = None
         self._tipanim_after: str | None = None
         self._tipanim: dict | None = None
 
@@ -264,6 +268,7 @@ class BarWindow:
             self.canvas.configure(cursor=cursor)
         x, y = event.x_root, event.y_root
         self._cancel_tooltip_timer()
+        self._cancel_tooltip_hide()
         self._tooltip_after = self.root.after(
             _TOOLTIP_DELAY_MS, lambda: self._show_tooltip(x, y)
         )
@@ -271,7 +276,31 @@ class BarWindow:
     def _leave(self, _event: tk.Event) -> None:
         self.canvas.configure(cursor="")
         self._cancel_tooltip_timer()
-        self._hide_tooltip()
+        self._cancel_tooltip_hide()
+        # short grace period: pointer may be moving onto the tooltip
+        # (the GitHub link shown after the animation is clickable)
+        self._tooltip_hide_after = self.root.after(
+            _TOOLTIP_HIDE_GRACE_MS, self._hide_tooltip
+        )
+
+    def _cancel_tooltip_hide(self) -> None:
+        if self._tooltip_hide_after is not None:
+            try:
+                self.root.after_cancel(self._tooltip_hide_after)
+            except tk.TclError:
+                pass
+            self._tooltip_hide_after = None
+
+    def _tooltip_enter(self, _event: tk.Event) -> None:
+        self._cancel_tooltip_hide()
+
+    def _tooltip_leave(self, _event: tk.Event) -> None:
+        # same grace: pointer may just be switching between tooltip
+        # widgets (label -> link); the sibling's <Enter> cancels this
+        self._cancel_tooltip_hide()
+        self._tooltip_hide_after = self.root.after(
+            _TOOLTIP_HIDE_GRACE_MS, self._hide_tooltip
+        )
 
     def _cancel_tooltip_timer(self) -> None:
         if self._tooltip_after is not None:
@@ -359,8 +388,12 @@ class BarWindow:
         y = min(y, top.winfo_screenheight() - top.winfo_reqheight() - 8)
         top.geometry(f"+{x}+{y}")
         self._tooltip = top
+        for widget in (top, frame, self._tooltip_label):
+            widget.bind("<Enter>", self._tooltip_enter)
+            widget.bind("<Leave>", self._tooltip_leave)
 
     def _hide_tooltip(self) -> None:
+        self._cancel_tooltip_hide()
         if self._tipanim_after is not None:
             try:
                 self.root.after_cancel(self._tipanim_after)
@@ -369,6 +402,7 @@ class BarWindow:
             self._tipanim_after = None
         self._tipanim = None
         self._tooltip_label = None
+        self._tooltip_link = None
         if self._tooltip is not None:
             try:
                 self._tooltip.destroy()
@@ -435,10 +469,30 @@ class BarWindow:
         except tk.TclError:
             self._tipanim = None
             return
+        if done and self._tooltip_link is None and self._tooltip is not None:
+            self._show_repo_link()
         if not done:
             self._tipanim_after = self.root.after(
                 _TOOLTIP_ANIM_FRAME_MS, self._tooltip_anim_tick
             )
+
+    def _show_repo_link(self) -> None:
+        """Clickable GitHub URL below the revealed version art."""
+        url = f"https://github.com/{updater.GITHUB_REPO}"
+        link = tk.Label(
+            self._tooltip_label.master,
+            text=url, cursor="hand2",
+            bg="#ffffe1", fg="#0563c1",
+            font=("Segoe UI", 9, "underline"), padx=8, pady=4,
+        )
+        link.pack(anchor="w")
+        link.bind("<Button-1>", self._open_repo)
+        link.bind("<Enter>", self._tooltip_enter)
+        link.bind("<Leave>", self._tooltip_leave)
+        self._tooltip_link = link
+
+    def _open_repo(self, _event: tk.Event | None = None) -> None:
+        webbrowser.open(f"https://github.com/{updater.GITHUB_REPO}")
 
     def _cycle_display_mode(self) -> None:
         w = self._win_cfg()

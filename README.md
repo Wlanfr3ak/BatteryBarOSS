@@ -41,7 +41,7 @@ battery indicator.*
 - **Hover tooltip**: full battery details (machine, capacities, wear,
   cycles, voltage, estimate source) after ~400 ms on the bar —
   held for ~5 s it morphs into an ASCII decrypt animation revealing
-  the version number (easter egg)
+  the version number plus a clickable GitHub link (easter egg)
 - **Resizable**: drag the right/bottom edge or the corner; the size is
   remembered, "Reset size" restores the default
 - **Autostart**: "Start with Windows" in the context menu (per-user

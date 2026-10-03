@@ -85,7 +85,7 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 |---|---|
 | FR-19 | Optional single-EXE build via PyInstaller (dev tool only, no runtime dep) | ✅ v0.6.0 — `tools\build_exe.bat` → `dist\BatteryBarOSS.exe`; plus Inno Setup installer `tools\build_installer.bat` |
 | FR-20 | Rounded corners / icons via PNG assets with alpha (chroma alternative) |
-| FR-21 | Tooltip with details (capacity mWh, health, voltage) | ✅ v0.5.0 — hover tooltip with all details incl. estimate source; v0.7.1: after ~5 s the tooltip plays an ASCII decrypt animation revealing the version (easter egg) |
+| FR-21 | Tooltip with details (capacity mWh, health, voltage) | ✅ v0.5.0 — hover tooltip with all details incl. estimate source; v0.7.1: after ~5 s the tooltip plays an ASCII decrypt animation revealing the version (easter egg); v0.7.2: adds a clickable GitHub repo link via tooltip hover-grace bridging |
 | FR-25 | Resizable bar (edge drag) | ✅ v0.5.0 — right/bottom edge + corner grips, persisted size, "Reset size" menu entry |
 | FR-26 | Self-update from GitHub Releases: one-time consent question, HTTPS-only, SHA-256-verified download (`SHA256SUMS.txt` release asset), one-step replace+relaunch, settings preserved | ✅ v0.7.0 — `updater.py`, frozen builds only |
 | FR-22 | Mini history graph (discharge curve) in a popup |

@@ -5,6 +5,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.7.2] - 2026-10-03
+
+### Added
+
+- The revealed easter-egg tooltip now shows the project's GitHub URL
+  (`https://github.com/Wlanfr3ak/BatteryBarOSS` — derived from
+  `updater.GITHUB_REPO`) as a styled, underlined link with a hand
+  cursor; clicking it opens the repository in the default browser
+  via stdlib `webbrowser`.
+- Tooltip "hover bridge": leaving the bar starts a 250 ms grace timer
+  instead of hiding instantly, and the tooltip widgets carry
+  `<Enter>/<Leave>` bindings — so the pointer can travel from the bar
+  onto the tooltip (and between tooltip widgets, e.g. text -> link)
+  without the tooltip vanishing before the link can be clicked.
+
 ## [0.7.1] - 2026-10-03
 
 ### Added
