@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.4.1] - 2026-10-03
+
+### Changed
+
+- `PROJECT_MEMORY.md`: documented the verification result of the HP
+  Battery Health Manager investigation — no unprivileged marker exists
+  (registry sweep found no HP software persisting the mode; only
+  "HP Accessory WMI Provider" is installed, which is exactly the
+  elevated-only `root\hp` provider). The actual BHM value read via
+  `tools/read_bios_battery_mode.bat` remains pending user opt-in (UAC).
+
 ## [0.4.0] - 2026-10-03
 
 ### Added

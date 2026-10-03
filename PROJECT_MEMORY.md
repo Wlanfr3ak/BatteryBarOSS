@@ -41,6 +41,10 @@ uptime, ...).
   120 cycles → wear ≈ 4.1 %; reports **no drain rate** (`RateOfDrain`
   = `BATTERY_UNKNOWN_RATE`); HP WMI provider `root\hp\instrumentedbios`
   + `HP_BIOSSetting` present but requires elevation
+- HP BHM marker **not yet read** (UAC declined at v0.4.0 test);
+  registry sweep found no HP software persisting the mode — only
+  "HP Accessory WMI Provider" is installed (that IS the `root\hp`
+  provider). No unprivileged marker exists, confirmed.
 - Windows 11 (10.0.26100), Git 2.52
 - Python 3.14.8 + 3.13 at `C:\Program Files\Python314\` / `Python313\`, `py` launcher present
 - Windows PowerShell 5.1 (no pwsh 7)
