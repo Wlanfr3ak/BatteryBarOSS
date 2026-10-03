@@ -36,6 +36,10 @@ At the start of every session, read this file and `PROJECT_MEMORY.md` first.
 - **Every version bump = one commit** following the pattern
   `v<version>: <short description>` with the full changelog entry in the
   commit body. This keeps everything traceable on GitHub.
+- **Every version commit is tagged `v<version>`** and the tag is pushed
+  (`git push --tags` or `git push origin v<version>`). Pushing the tag
+  triggers `.github/workflows/release.yml`, which builds the artifacts
+  and publishes a GitHub Release with the changelog section as notes.
 - Commit messages are written in **English**.
 - Never commit secrets (see section 5). Never commit research raw files (section 6).
 - No `--force` push, no history rewriting, no changes to git config.

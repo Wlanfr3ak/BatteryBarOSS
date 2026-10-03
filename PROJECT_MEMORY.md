@@ -59,6 +59,11 @@ uptime, ...).
 ## GitHub / remote
 
 - Remote: `git@github.com:Wlanfr3ak/BatteryBarOSS.git` (SSH), branch `main`
+- **Releases are automated** (`.github/workflows/release.yml`, v0.6.1):
+  `git tag vX.Y.Z && git push --tags` → Windows runner builds exe +
+  installer → GitHub Release with setup, portable exe and the extracted
+  CHANGELOG section as notes. Cutting a release = version bump commit +
+  tag + push.
 - GitHub account: **Wlanfr3ak**, git author `Wlanfr3ak <6292882+Wlanfr3ak@users.noreply.github.com>`
 - SSH auth: key `~/.ssh/fabian` (ed25519, registered on GitHub 2026-10-03);
   `~/.ssh/config` contains `Host github.com` with

@@ -72,13 +72,11 @@ Details and installation instructions: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.
 
 ### Option A — installer (no Python needed)
 
-Build once (requires PyInstaller + Inno Setup, dev tools only):
-
-```bat
-tools\build_installer.bat
-```
-
-Then run `installer\Output\BatteryBarOSS-Setup-X.Y.Z.exe`: installs to
+Grab the latest `BatteryBarOSS-Setup-X.Y.Z.exe` from
+[**Releases**](https://github.com/Wlanfr3ak/BatteryBarOSS/releases)
+(built automatically by CI on every version tag), or build it yourself
+via `tools\build_installer.bat` (requires PyInstaller + Inno Setup,
+dev tools only). The setup installs to
 `%LOCALAPPDATA%\Programs\BatteryBarOSS` (per-user, no UAC), offers an
 autostart checkbox and a start-menu entry. Uninstall via Windows
 "Apps". User data (settings, stats, logs) lives in

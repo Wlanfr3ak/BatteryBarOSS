@@ -1,0 +1,61 @@
+name: release
+
+# Triggered by pushing a version tag `vX.Y.Z` (release convention, AGENTS.md).
+# Builds the PyInstaller exe + Inno Setup installer on Windows, then
+# creates a GitHub Release with both artifacts and the matching
+# CHANGELOG.md section as release notes.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install PyInstaller
+        run: pip install "pyinstaller==6.22.2"
+
+      - name: Resolve app version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = python -c "import sys; sys.path.insert(0,'src'); import batterybar; print(batterybar.__version__)"
+          "version=$v" | Out-File -Append $env:GITHUB_OUTPUT
+
+      - name: Build exe (PyInstaller)
+        shell: cmd
+        run: tools\build_exe.bat
+
+      - name: Build installer (Inno Setup, preinstalled on runner)
+        shell: cmd
+        run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=${{ steps.ver.outputs.version }} installer\setup.iss'
+
+      - name: Extract release notes from CHANGELOG.md
+        shell: pwsh
+        run: python tools\release_notes.py "${{ steps.ver.outputs.version }}" release-notes.md
+
+      - name: Stage portable exe
+        shell: pwsh
+        run: Copy-Item dist\BatteryBarOSS.exe "BatteryBarOSS-${{ steps.ver.outputs.version }}.exe"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: >-
+          gh release create "v${{ steps.ver.outputs.version }}"
+          --title "BatteryBar OSS v${{ steps.ver.outputs.version }}"
+          --notes-file release-notes.md
+          "installer\Output\BatteryBarOSS-Setup-${{ steps.ver.outputs.version }}.exe"
+          "BatteryBarOSS-${{ steps.ver.outputs.version }}.exe"

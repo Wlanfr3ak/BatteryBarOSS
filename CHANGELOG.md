@@ -5,6 +5,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.6.1] - 2026-10-03
+
+### Added
+
+- **Automated GitHub Releases** (`.github/workflows/release.yml`):
+  pushing a `vX.Y.Z` tag triggers a Windows runner that installs
+  PyInstaller, builds `dist\BatteryBarOSS.exe`, compiles the Inno
+  installer (preinstalled on the runner) and publishes a Release
+  containing `BatteryBarOSS-Setup-X.Y.Z.exe`, the portable exe and the
+  extracted CHANGELOG section as release notes.
+- `tools/release_notes.py`: extracts the `## [X.Y.Z]` changelog section
+  (used by the workflow, also handy locally).
+- Release rule added to `AGENTS.md` §3: every version commit is tagged
+  `vX.Y.Z`; the tag push triggers the release build.
+
 ## [0.6.0] - 2026-10-03
 
 ### Added
