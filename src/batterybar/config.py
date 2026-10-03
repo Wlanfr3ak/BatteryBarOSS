@@ -14,6 +14,7 @@ LOGS_DIR = ROOT_DIR / "logs"
 SETTINGS_FILE = CONFIG_DIR / "settings.json"
 LOCAL_SETTINGS_FILE = CONFIG_DIR / "settings.local.json"
 SECRETS_FILE = CONFIG_DIR / "secrets.json"
+STATS_FILE = CONFIG_DIR / "stats.local.json"
 
 DEFAULT_SETTINGS: dict = {
     "window": {

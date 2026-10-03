@@ -75,7 +75,8 @@ class BarWindow:
     def _make_estimator(self) -> estimate.TimeEstimator:
         est = self.settings.get("estimation", {})
         return estimate.TimeEstimator(
-            soft_min_percent=float(est.get("soft_min_percent", 5.0))
+            soft_min_percent=float(est.get("soft_min_percent", 5.0)),
+            stats_path=config.STATS_FILE,
         )
 
     def _win_cfg(self) -> dict:

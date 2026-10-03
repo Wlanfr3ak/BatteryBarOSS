@@ -25,6 +25,7 @@ _FLAG_NO_BATTERY = 0x80
 _FLAG_UNKNOWN = 0xFF
 _UNKNOWN_SECONDS = 0xFFFFFFFF
 _UNKNOWN_PERCENT = 0xFF
+_UNKNOWN_RATE = -2147483648  # BATTERY_UNKNOWN_RATE (0x80000000 as signed LONG)
 _INFO_LEVEL_SYSTEM_BATTERY_STATE = 5
 
 
@@ -53,7 +54,7 @@ class PowerDetails:
 
     max_mwh: int
     remaining_mwh: int
-    rate_mw: int  # signed: <0 while discharging, >0 while charging
+    rate_mw: int | None  # signed, None = hardware does not report a rate
     estimated_s: int | None
     ac_on_line: bool
     charging: bool
@@ -69,10 +70,11 @@ def read_power_details() -> PowerDetails | None:
     )
     if ret != 0:
         return None
+    rate = ctypes.c_int32(sbs.RateOfDrain).value
     return PowerDetails(
         max_mwh=int(sbs.MaxCapacity),
         remaining_mwh=int(sbs.RemainingCapacity),
-        rate_mw=ctypes.c_int32(sbs.RateOfDrain).value,
+        rate_mw=None if rate == _UNKNOWN_RATE else rate,
         estimated_s=None if sbs.EstimatedTime == _UNKNOWN_SECONDS else int(sbs.EstimatedTime),
         ac_on_line=bool(sbs.AcOnLine),
         charging=bool(sbs.Charging),
@@ -179,7 +181,7 @@ def render_fields(
     time_str = format_duration(seconds)
     if estimated and seconds is not None:
         time_str = "~" + time_str
-    if details is not None and details.rate_mw != 0:
+    if details is not None and details.rate_mw:
         rate_str = f"{details.rate_mw / 1000:.1f} W"
     else:
         rate_str = ""

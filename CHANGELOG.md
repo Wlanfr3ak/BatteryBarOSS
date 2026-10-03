@@ -5,6 +5,33 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.3.1] - 2026-10-03
+
+### Fixed
+
+- **"0:00 h" estimate on batteries that report no drain rate** (user
+  report): `RateOfDrain` was `0x80000000` = `BATTERY_UNKNOWN_RATE`
+  (signed: `-2147483648`) on the dev machine — the "not reported"
+  sentinel, not a real rate. Division produced ~0 s. Sentinel is now
+  mapped to `rate_mw=None` and the rate branch is skipped.
+- `PowerDetails.rate_mw` is now `int | None` (`None` = hardware reports
+  no rate); `{rate}` placeholder shows nothing then — matching
+  BatteryBar, which marks such cases "(Estimated)".
+
+### Added
+
+- **Learned discharge rate with persistence** (FR-12, partial): the
+  estimator learns the average drain from real capacity deltas
+  (mWh/s → mW) while discharging, blends it into `avg_drain_mw` via
+  EWMA (α = 0.3) and persists it to `config/stats.local.json`
+  (gitignored) every 60 s and on AC reconnect. When the hardware
+  reports no rate, this learned rate produces a plausible estimate
+  **immediately after unplugging** — BatteryBar's documented
+  historical-data behavior.
+- **Merged capacity quantity**: the slope tracks
+  `min(remaining_mwh, percent·max_mwh/100)` so drain is detected even
+  while the fuel gauge still reports "full" at 100 %.
+
 ## [0.3.0] - 2026-10-03
 
 ### Added

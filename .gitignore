@@ -9,6 +9,7 @@
 # --- Secrets & lokale Konfiguration (NIEMALS committen) ---
 config/secrets.json
 config/settings.local.json
+config/stats.local.json
 
 # --- Recherche-Rohdateien (Quellen sind in docs/RESEARCH.md dokumentiert) ---
 Recherchen/

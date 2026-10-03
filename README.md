@@ -76,6 +76,7 @@ python -m batterybar --selftest
 |---|---|---|
 | `config/settings.json` | Default settings | yes |
 | `config/settings.local.json` | Personal overrides (override defaults) | no |
+| `config/stats.local.json` | Learned average drain rate (runtime state) | no |
 | `config/secrets.json` | Secrets/keys (template: `secrets.example.json`) | no, never |
 
 Key options (excerpt, full reference in `settings.json`):

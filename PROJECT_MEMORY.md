@@ -103,3 +103,10 @@ Left-click (< 6 px) cycles `window.display_mode`; drag moves the bar.
   handled via `.gitattributes`.
 - The `read`/`edit` file tools refuse gitignored files (e.g.
   `settings.local.json`) – modify them via `exec`/python instead.
+- `RateOfDrain` can be `0x80000000` = `BATTERY_UNKNOWN_RATE` — dev
+  machine's battery reports **no rate at all** (v0.3.1 bug: showed
+  "0:00 h"). Always treat the sentinel as "not reported". Learned
+  drain rate in `config/stats.local.json` (EWMA) is then the only
+  instant estimate — exactly like BatteryBar's historical profile.
+- `q1 - floor <= 0` edge: estimates count to the soft-min floor, so
+  "0:00" near the reserve is correct behavior, not a bug.
