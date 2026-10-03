@@ -5,6 +5,23 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 Regeln: siehe `AGENTS.md` §1–§3.
 
+## [0.1.2] - 2026-10-03
+
+### Behoben
+
+- **Lockout durch persistierten Click-Through-Modus**: war
+  `click_through` einmal aktiviert und in `settings.local.json`
+  gespeichert, blieb die Leiste auch nach Neustart dauerhaft
+  unanklickbar (gemeldet vom User). Sofortmaßnahme: Eintrag aus der
+  lokalen Config entfernt.
+
+### Hinzugefügt
+
+- **Hinweis-Toast beim Start mit aktivem Click-Through**: erscheint
+  600 ms nach Start, wenn `click_through` geladen wurde, und zeigt den
+  Rückkehr-Hotkey (`Strg+Alt+B`) — verhindert stille Lockouts nach
+  Neustarts.
+
 ## [0.1.1] - 2026-10-03
 
 ### Hinzugefügt

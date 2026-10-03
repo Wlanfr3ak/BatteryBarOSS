@@ -55,6 +55,14 @@ class BarWindow:
         self._bind_events()
         self._build_menu()
 
+        if self._win_cfg()["click_through"]:
+            self.root.after(
+                600,
+                lambda: self._toast(
+                    "Durchklick-Modus aktiv – Rückkehr per Strg+Alt+B"
+                ),
+            )
+
         self.root.after(0, self._tick)
         self.root.after(150, self._hotkey_poll)
 
