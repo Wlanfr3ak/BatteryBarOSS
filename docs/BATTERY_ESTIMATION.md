@@ -13,7 +13,9 @@ live API probes on the dev machine (Windows 11, ~53.7 Wh battery).
 | `GetSystemPowerStatus` → `BatteryLifeTime` | seconds remaining, `0xFFFFFFFF` when unknown | Unreliable: often "unknown" right after unplugging – Windows needs a while to build its own estimate. Still useful as last-resort fallback. |
 | `CallNtPowerInformation(SystemBatteryState=5)` → `SYSTEM_BATTERY_STATE` | `AcOnLine`, `BatteryPresent`, `Charging`, `Discharging`, `MaxCapacity` (mWh), `RemainingCapacity` (mWh), `RateOfDrain` (signed mW, <0 while discharging), `EstimatedTime` (s, `0xFFFFFFFF` unknown) | **Best source — with a caveat.** Real mWh capacities + live drain rate straight from the battery fuel gauge. Verified on the dev machine: `MaxCapacity 53673 mWh`, `RemainingCapacity 53673 mWh`. One ctypes call, stdlib only. **Caveat (found in v0.3.1 debugging):** `RateOfDrain` may be `0x80000000` = `BATTERY_UNKNOWN_RATE` — this battery reports **no rate at all**. Consumers must treat the sentinel as "not reported", not as a huge negative drain (that bug produced "0:00 h"). |
 | WMI `Win32_Battery` | `EstimatedRunTime` (min), `EstimatedChargeRemaining`, `DesignCapacity`, `FullChargeCapacity` | **Useless in practice.** Probe returned `EstimatedRunTime = 71582788` (sentinel garbage) and empty capacity fields. Do not use. |
-| `IOCTL_BATTERY_QUERY_INFORMATION` | `BATTERY_INFORMATION` incl. `FullChargedCapacity`, `DesignedCapacity`, `RateOfDrain` | Rich data (incl. wear via DesignCapacity), but needs device enumeration (setupapi). Planned for FR-13. |
+| `IOCTL_BATTERY_QUERY_INFORMATION` | `BATTERY_INFORMATION` incl. `FullChargedCapacity`, `DesignedCapacity`, `CycleCount` | Rich data, but needs device-interface enumeration via setupapi. **Investigated on the dev machine (v0.4.0): `SetupDiEnumDeviceInterfaces` returns no `GUID_DEVICE_BATTERY`/`GUID_DEVCLASS_BATTERY` interface** — not a dependable path here. |
+| WMI `root\wmi` battery classes | `BatteryStaticData` (DesignedCapacity, SerialNumber, ManufactureDate), `BatteryFullChargedCapacity`, `BatteryCycleCount`, `BatteryStatus` (Voltage, PowerOnline, DischargeRate) | **Works — adopted in v0.4.0.** Probe returned Design 55994 mWh, Full 53673 mWh, 120 cycles → real wear 4.1 %. Read via one-shot PowerShell subprocess (COM has no stdlib binding); ~300 ms, called hourly. |
+| `root\hp\instrumentedbios` (HP only) | `HP_BIOSSetting` instances: BIOS settings incl. battery management | **Explicit firmware marker for HP Battery Health Manager** — but access denied without elevation. Exposed via `tools/read_bios_battery_mode.bat` (opt-in, UAC), cached to `config/hp_bios.local.json`. |
 
 ## 2. How BatteryBar (Pro) computed it
 
@@ -50,7 +52,15 @@ used." At the soft minimum the bar already reports `0:00`.
 ### Battery wear
 
 `wear = 1 - (FullChargeCapacity / DesignedCapacity)` in mWh —
-a real hardware health metric (FR-13 territory).
+a real hardware health metric. Implemented in v0.4.0 via `root\wmi`
+(`BatteryStaticData` + `BatteryFullChargedCapacity`); shown in the
+`health` display mode. **Caution on HP machines:** vendor battery
+management (HP Battery Health Manager, configured in the BIOS) can
+make the reported `FullChargedCapacity` look like 0 % wear because
+the BIOS caps the charge target — the wear number then reflects the
+*managed* limit, not cell chemistry. The actual BHM mode can be read
+explicitly via `root\hp\instrumentedbios` (elevation required, see
+`tools/read_bios_battery_mode.bat`).
 
 ### Click-toggle display (confirmed)
 

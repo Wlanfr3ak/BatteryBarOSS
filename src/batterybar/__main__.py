@@ -50,7 +50,7 @@ def _setup_logging(settings: dict) -> None:
 
 def _selftest() -> int:
     """Validate config + battery read without opening the GUI."""
-    from . import battery
+    from . import battery, sysinfo
 
     settings = config.load_settings()
     t = settings["thresholds"]
@@ -58,6 +58,9 @@ def _selftest() -> int:
         low_threshold=int(t["low"]), critical_threshold=int(t["critical"])
     )
     details = battery.read_power_details()
+    static = battery.read_static_info()
+    machine = sysinfo.read_machine_info()
+    bhm = sysinfo.read_hp_bios_cache()
     result = {
         "app": __app_name__,
         "version": __version__,
@@ -77,7 +80,27 @@ def _selftest() -> int:
             "rate_mw": details.rate_mw,
             "estimated_s": details.estimated_s,
         },
-        "fields": battery.render_fields(status, details=details),
+        "static_info": None if static is None else {
+            "design_mwh": static.design_mwh,
+            "full_mwh": static.full_charge_mwh,
+            "cycle_count": static.cycle_count,
+            "wear_percent": None if static.wear_percent is None else round(static.wear_percent, 1),
+            "serial": static.serial,
+        },
+        "machine": {
+            "manufacturer": machine.manufacturer,
+            "product_name": machine.product_name,
+            "bios_version": machine.bios_version,
+            "is_hp": machine.is_hp,
+        },
+        "hp_bios_cache": bhm,
+        "fields": battery.render_fields(
+            status,
+            details=details,
+            static=static,
+            machine=machine.product_name,
+            bhm=None if bhm is None else str(bhm.get("mode")),
+        ),
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0

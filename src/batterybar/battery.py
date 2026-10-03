@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import ctypes
+import json
+import subprocess
 from ctypes import wintypes
 from dataclasses import dataclass
 
@@ -174,6 +176,9 @@ def render_fields(
     est_seconds: int | None = None,
     details: PowerDetails | None = None,
     estimated: bool = False,
+    static: "BatteryStaticInfo | None" = None,
+    machine: str = "",
+    bhm: str | None = None,
 ) -> dict[str, str]:
     """Build the placeholder dict used by the window format string."""
     percent = status.percent if status.percent is not None else 0
@@ -191,6 +196,16 @@ def render_fields(
         )
     else:
         capacity_str = ""
+    health_parts: list[str] = []
+    if static is not None:
+        if static.full_charge_mwh:
+            health_parts.append(f"{static.full_charge_mwh / 1000:.1f} Wh")
+        if static.wear_percent is not None:
+            health_parts.append(f"{static.wear_percent:.1f}% wear")
+        if static.cycle_count:
+            health_parts.append(f"{static.cycle_count} cyc")
+    if bhm:
+        health_parts.append(f"BHM: {bhm}")
     return {
         "percent": str(percent),
         "time": time_str,
@@ -199,8 +214,75 @@ def render_fields(
         "state": status.state,
         "state_text": STATE_TEXT.get(status.state, status.state),
         "state_icon": STATE_ICON.get(status.state, ""),
+        "health": " · ".join(health_parts),
+        "wear": f"{static.wear_percent:.1f}" if static and static.wear_percent is not None else "",
+        "cycles": str(static.cycle_count) if static and static.cycle_count else "",
+        "design_wh": f"{static.design_mwh / 1000:.1f}" if static and static.design_mwh else "",
+        "full_wh": f"{static.full_charge_mwh / 1000:.1f}" if static and static.full_charge_mwh else "",
+        "machine": machine,
+        "bhm": bhm or "",
     }
 
 
 def fill_color_key(state: str) -> str:
     return _FILL_COLOR_KEY.get(state, "fill_discharging")
+
+
+# --------------------------------------------------------------------------
+# Static battery info (design capacity, cycles, serial) via root\wmi classes.
+# Querying root\wmi needs COM; the cheapest stdlib-conformant path is a
+# one-shot PowerShell subprocess (OS component, ~300 ms, called rarely).
+# --------------------------------------------------------------------------
+
+
+@dataclass
+class BatteryStaticInfo:
+    design_mwh: int | None
+    full_charge_mwh: int | None
+    cycle_count: int | None
+    serial: str
+    manufacture_date: str
+    voltage_mv: int | None
+
+    @property
+    def wear_percent(self) -> float | None:
+        if self.design_mwh and self.full_charge_mwh is not None:
+            return max(0.0, 100.0 - self.full_charge_mwh / self.design_mwh * 100)
+        return None
+
+
+_PS_STATIC_CMD = (
+    "$b=Get-WmiObject -Namespace root\\wmi -Class BatteryStaticData;"
+    "$f=Get-WmiObject -Namespace root\\wmi -Class BatteryFullChargedCapacity;"
+    "$c=Get-WmiObject -Namespace root\\wmi -Class BatteryCycleCount;"
+    "$s=Get-WmiObject -Namespace root\\wmi -Class BatteryStatus;"
+    "[pscustomobject]@{design_mwh=$b.DesignedCapacity;"
+    "full_mwh=$f.FullChargedCapacity;cycles=$c.CycleCount;"
+    "serial=([string]$b.SerialNumber).Trim();"
+    "mfg=([string]$b.ManufactureDate).Trim();voltage_mv=$s.Voltage}"
+    "|ConvertTo-Json -Compress"
+)
+
+
+def read_static_info(timeout: float = 15.0) -> BatteryStaticInfo | None:
+    """Read static battery info from root\\wmi via a PowerShell one-shot."""
+    try:
+        proc = subprocess.run(
+            [
+                "powershell", "-NoProfile", "-NonInteractive",
+                "-ExecutionPolicy", "Bypass", "-Command", _PS_STATIC_CMD,
+            ],
+            capture_output=True, text=True, timeout=timeout,
+            creationflags=0x08000000,  # CREATE_NO_WINDOW
+        )
+        data = json.loads(proc.stdout)
+        return BatteryStaticInfo(
+            design_mwh=data.get("design_mwh"),
+            full_charge_mwh=data.get("full_mwh"),
+            cycle_count=data.get("cycles"),
+            serial=str(data.get("serial") or ""),
+            manufacture_date=str(data.get("mfg") or ""),
+            voltage_mv=data.get("voltage_mv"),
+        )
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+        return None

@@ -3,16 +3,17 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import time
 import tkinter as tk
 import winsound
 
-from . import __app_name__, __version__, battery, config, estimate
+from . import __app_name__, __version__, battery, config, estimate, sysinfo
 
 log = logging.getLogger(__name__)
 
 CHROMA = "#ff00ff"  # chroma-key color -> fully transparent window background
 _CLICK_TOLERANCE_PX = 6
-_DISPLAY_MODES = ("default", "time", "percent", "rate", "capacity")
+_DISPLAY_MODES = ("default", "time", "percent", "rate", "capacity", "health")
 
 _GWL_EXSTYLE = -20
 _WS_EX_LAYERED = 0x00080000
@@ -38,6 +39,9 @@ class BarWindow:
         self._drag_origin: tuple[int, int] | None = None
         self._hotkey_latch = False
         self._warn_level = 0
+        self._machine = sysinfo.read_machine_info()
+        self._static: battery.BatteryStaticInfo | None = None
+        self._static_at = 0.0
 
         self.root = tk.Tk()
         self.root.title(f"{__app_name__} v{__version__}")
@@ -228,9 +232,17 @@ class BarWindow:
     def _toggle_lock(self) -> None:
         config.save_local({"window": {"lock_position": self._var_lock.get()}})
 
+    def _hp_bhm(self) -> str | None:
+        if not self._machine.is_hp:
+            return None
+        cache = sysinfo.read_hp_bios_cache()
+        return str(cache["mode"]) if cache else None
+
     def reload_settings(self) -> None:
         self.settings = config.load_settings()
         self._estimator = self._make_estimator()
+        self._static = battery.read_static_info()
+        self._static_at = time.monotonic()
         self._var_topmost.set(bool(self._win_cfg()["always_on_top"]))
         self._var_click.set(bool(self._win_cfg()["click_through"]))
         self._var_lock.set(bool(self._win_cfg()["lock_position"]))
@@ -276,6 +288,9 @@ class BarWindow:
             details = battery.read_power_details()
             est = self._estimator.remaining_seconds(status, details)
             self._last = (status, details, est)
+            if self._static is None or time.monotonic() - self._static_at > 3600:
+                self._static = battery.read_static_info()
+                self._static_at = time.monotonic()
             self._redraw(status, details, est)
             self._check_warning(status)
         except Exception:
@@ -322,7 +337,10 @@ class BarWindow:
             status,
             est_seconds=est_seconds,
             details=details,
-            estimated=self._estimator.source == "slope",
+            estimated=self._estimator.source in ("slope", "learned"),
+            static=self._static,
+            machine=self._machine.product_name,
+            bhm=self._hp_bhm(),
         )
         w = self._win_cfg()
         mode_fmt = {
@@ -330,6 +348,7 @@ class BarWindow:
             "percent": "{percent}%",
             "rate": "{rate}",
             "capacity": "{capacity}",
+            "health": "{health}",
         }
         fmt = mode_fmt.get(str(w.get("display_mode", "default"))) or str(
             w.get("format") or "{percent}%"

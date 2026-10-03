@@ -71,7 +71,8 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 |---|---|
 | FR-11 | Extend provider architecture: more data sources via stdlib (`GetSystemTimes` CPU, `GlobalMemoryStatusEx` RAM, uptime, date/time, IP) – modelled on DesktopInfo/Conky |
 | FR-12 | Own runtime estimate from discharge history (BatteryBar Pro feature); persist history. **Partially done v0.3.0**: rate-based + slope + driver fallback implemented; still open: persisted statistical discharge profile |
-| FR-13 | Battery health: design vs. full-charge capacity, charge rate (`IOCTL_BATTERY_QUERY_INFORMATION` / `CallNtPowerInformation`) |
+| FR-13 | Battery health: design vs. full-charge capacity, charge rate — **partially done v0.4.0**: design/full capacity, cycle count, serial, wear % via `root\wmi` classes (IOCTL path investigated, not enumerable on dev HW); still open: charge rate, statistics |
+| FR-13a | Vendor BIOS battery-management mode via explicit firmware marker (not inferred from battery values) — **v0.4.0 for HP**: `tools/read_bios_battery_mode.bat` reads `root\hp\instrumentedbios` `HP_BIOSSetting` elevated, caches to `hp_bios.local.json`; shown in `health` mode as `BHM:` |
 | FR-14 | Theme system: JSON themes (color sets), theme switch in the context menu |
 | FR-15 | Autostart option (task/registry Run key, toggleable from the menu) |
 | FR-16 | Multi-monitor awareness (monitor choice, correct corner anchoring) |
@@ -124,7 +125,10 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 | Data | Source | Access |
 |---|---|---|
 | Battery %, charge state, remaining seconds | Win32 `GetSystemPowerStatus` | ctypes (kernel32) |
-| (later) Battery details, health | `IOCTL_BATTERY_QUERY_INFORMATION`, `CallNtPowerInformation` | ctypes (setupapi/powrprof) |
+| Battery mWh/mW live values | `CallNtPowerInformation(SYSTEM_BATTERY_STATE)` | ctypes (powrprof) |
+| Battery statics (design/full capacity, cycles, serial) | `root\wmi` classes `BatteryStaticData`, `BatteryFullChargedCapacity`, `BatteryCycleCount` | PowerShell one-shot subprocess (COM needs no stdlib binding; IOCTL path not enumerable on dev HW) |
+| Machine model / BIOS / vendor | Registry `HKLM\SYSTEM\CurrentControlSet\Control\SystemInformation` | stdlib `winreg` |
+| (optional) HP BIOS battery mode | `root\hp\instrumentedbios` `HP_BIOSSetting` | elevated PowerShell tool, JSON cache |
 | (later) CPU/RAM | `GetSystemTimes`, `GlobalMemoryStatusEx` | ctypes (kernel32) |
 | (later) IP/network | `GetAdaptersAddresses` or similar | ctypes (iphlpapi) |
 | Config | JSON files `config/` | stdlib json |
@@ -135,8 +139,10 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 - **v0.1.x** ✅ MVP: floating battery bar, config, warnings, doc skeleton
 - **v0.2.0** ✅ Project language switched to English (docs + UI)
 - **v0.3.0** ✅ Hybrid remaining-time estimator (fuel-gauge mWh/mW), click-to-cycle display; research doc `docs/BATTERY_ESTIMATION.md`
-- **v0.4.x**: Provider framework + CPU/RAM/time fields; format string with
-  arbitrary providers; FR-11, FR-17. Statistical discharge profile (rest of FR-12)
-- **v0.5.x**: Battery details/health (FR-13), JSON themes + theme menu (FR-14), autostart (FR-15), tooltip (FR-21)
+- **v0.4.0** ✅ Battery health info (wear %, cycles, capacities via `root\wmi`),
+  machine identification, HP Battery Health Manager marker (elevated tool),
+  `health` display mode (FR-13 partial, FR-13a)
+- **v0.5.x**: Provider framework + CPU/RAM/time fields (FR-11, FR-17),
+  JSON themes (FR-14), autostart (FR-15), tooltip (FR-21)
 - **v0.6.x**: Multi-monitor (FR-16), configurable hotkeys (FR-18)
 - **v1.0.0**: Feature parity with BatteryBar Pro core functions + stability

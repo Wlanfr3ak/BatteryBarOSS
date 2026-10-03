@@ -5,6 +5,56 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.4.0] - 2026-10-03
+
+### Added
+
+- **Battery health info — real wear value** (FR-13, partial): reads
+  design capacity, full-charge capacity, cycle count, serial number and
+  manufacture date from the `root\wmi` classes `BatteryStaticData`,
+  `BatteryFullChargedCapacity`, `BatteryCycleCount`, `BatteryStatus`
+  via a one-shot PowerShell subprocess (OS component, ~300 ms,
+  refreshed hourly + on reload). On the dev machine this exposes the
+  **real** wear of ~4.1 % (Design 55994 mWh vs. Full 53673 mWh,
+  120 cycles) — values that tools reading only `Win32_Battery` never
+  see (that class returns empty capacity fields).
+- **New `health` display mode** in the click cycle:
+  `default → time → percent → rate → capacity → health` — shows e.g.
+  `53.7 Wh · 4.1% wear · 120 cyc`. New format placeholders:
+  `{health}`, `{wear}`, `{cycles}`, `{design_wh}`, `{full_wh}`,
+  `{machine}`, `{bhm}`.
+- **Machine identification** (`sysinfo.read_machine_info()`): reads
+  manufacturer/product/BIOS version from the registry
+  (`HKLM\...\SystemInformation`) — no elevation needed. Detects HP
+  machines via `is_hp`.
+- **HP Battery Health Manager marker** (unique BIOS-mode detection,
+  user request): `tools/read_bios_battery_mode.bat` runs an elevated
+  PowerShell query against HP's official BIOS WMI interface
+  (`root\hp\instrumentedbios`, `HP_BIOSSetting`) and caches the real
+  BIOS setting value to `config/hp_bios.local.json` (gitignored). The
+  bar then shows it in health mode as `BHM: <mode>`. This is an
+  explicit firmware marker — **not** inferred from battery values.
+  Access denied without elevation: there is no non-privileged unique
+  marker on HP machines; on non-HP machines everything degrades
+  gracefully (`bhm` stays empty).
+- `--selftest` output now includes `static_info`, `machine` and
+  `hp_bios_cache` blocks.
+- `sysinfo.py` module; `config.HP_BIOS_FILE` constant.
+
+### Changed
+
+- `.gitignore` translated to English (missed in v0.2.0) +
+  `config/hp_bios.local.json` added.
+
+### Notes
+
+- `IOCTL_BATTERY_QUERY_INFORMATION` (originally planned for FR-13)
+  was investigated: the `GUID_DEVICE_BATTERY` device interface cannot
+  be enumerated via setupapi on this machine (no interfaces returned,
+  tried `72631e55`/`72631e54` class GUIDs). `root\wmi` via the
+  PowerShell subprocess turned out to be the dependable stdlib path —
+  same data, no COM plumbing in-process.
+
 ## [0.3.1] - 2026-10-03
 
 ### Fixed

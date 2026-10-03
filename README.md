@@ -15,7 +15,7 @@ Conky/BGInfo-style desktop info widget.
 
 ---
 
-## Features (v0.3.0)
+## Features (v0.4.0)
 
 - Floating, frameless, transparent status bar (always-on-top)
 - Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
@@ -24,7 +24,14 @@ Conky/BGInfo-style desktop info widget.
   within seconds after unplugging, counting down to a configurable
   soft-minimum reserve instead of 0 % (see `docs/BATTERY_ESTIMATION.md`)
 - **Click-to-cycle display**: left-click on the bar toggles
-  `default → time → percent → rate → capacity` (BatteryBar-style)
+  `default → time → percent → rate → capacity → health` (BatteryBar-style)
+- **Battery health view**: real wear %, cycle count and true
+  full-charge capacity from `root\wmi` battery classes — the values
+  that `Win32_Battery` hides
+- **HP Battery Health Manager marker** (HP business notebooks):
+  `tools/read_bios_battery_mode.bat` reads the actual BIOS setting via
+  HP's WMI interface (needs admin once, UAC prompt) and the bar shows
+  it in health mode as `BHM: <mode>`
 - Color-coded fill per state (configurable)
 - Freely draggable – position is remembered
 - Context menu (right click): always-on-top, click-through mode,
@@ -77,6 +84,7 @@ python -m batterybar --selftest
 | `config/settings.json` | Default settings | yes |
 | `config/settings.local.json` | Personal overrides (override defaults) | no |
 | `config/stats.local.json` | Learned average drain rate (runtime state) | no |
+| `config/hp_bios.local.json` | Cached HP BIOS battery mode (written by `tools/read_bios_battery_mode.bat`) | no |
 | `config/secrets.json` | Secrets/keys (template: `secrets.example.json`) | no, never |
 
 Key options (excerpt, full reference in `settings.json`):
@@ -84,8 +92,8 @@ Key options (excerpt, full reference in `settings.json`):
 | Key | Default | Description |
 |---|---|---|
 | `window.width` / `window.height` | `220` / `28` | Bar size (px) |
-| `window.format` | `{state_icon} {percent}% · {time}` | Display template. Placeholders: `{percent}`, `{time}`, `{rate}`, `{capacity}`, `{state}`, `{state_text}`, `{state_icon}` |
-| `window.display_mode` | `default` | `default` uses `format`; `time`/`percent`/`rate`/`capacity` show a single field — cycled by left-click |
+| `window.format` | `{state_icon} {percent}% · {time}` | Display template. Placeholders: `{percent}`, `{time}`, `{rate}`, `{capacity}`, `{state}`, `{state_text}`, `{state_icon}`, `{health}`, `{wear}`, `{cycles}`, `{design_wh}`, `{full_wh}`, `{machine}`, `{bhm}` |
+| `window.display_mode` | `default` | `default` uses `format`; `time`/`percent`/`rate`/`capacity`/`health` show a single field — cycled by left-click |
 | `estimation.soft_min_percent` | `5.0` | Reserve floor: time counts down to this %, not to real 0 % |
 | `window.corner` / `offset_x` / `offset_y` | `top-right` / `20` / `20` | Start position (when no saved position) |
 | `thresholds.low` / `thresholds.critical` | `30` / `15` | Thresholds for warning colors + warnings (%) |
@@ -95,12 +103,27 @@ Key options (excerpt, full reference in `settings.json`):
 
 Format example: `"{state_icon} {percent}% · {time}"` → `⚡ 87% · 1:42 h`
 
+## HP battery mode (optional, HP notebooks only)
+
+HP business notebooks manage the battery in the BIOS ("Battery Health
+Manager"). The mode cannot be read without administrator rights — HP
+exposes it only via `root\hp\instrumentedbios`. To display it:
+
+1. Run `tools\read_bios_battery_mode.bat` once (accepts a UAC prompt)
+2. The tool writes `config/hp_bios.local.json` with the real BIOS
+   setting value (e.g. `Let HP manage my battery`)
+3. The bar then shows it in `health` display mode as `BHM: <mode>`
+
+This is an explicit firmware marker — never inferred from battery
+charge or wear values. On non-HP machines the step is unnecessary;
+everything simply stays empty.
+
 ## Usage
 
 - **Left-click + drag**: move the bar (position is saved to
   `settings.local.json` on release)
 - **Left-click (without dragging)**: cycle the display
-  `default → time → percent → rate → capacity`
+  `default → time → percent → rate → capacity → health`
 - **Right-click**: context menu
 - **Warning toast**: appears bottom-right when the low/critical threshold is
   crossed (once per event)
@@ -117,6 +140,9 @@ Format example: `"{state_icon} {percent}% · {time}"` → `⚡ 87% · 1:42 h`
 ├── config/
 │   ├── settings.json           # defaults
 │   └── secrets.example.json    # template for secrets.json
+├── tools/
+│   ├── read_bios_battery_mode.bat  # elevated HP BIOS battery-mode query
+│   └── read_bios_battery_mode.ps1  # (HP WMI -> config/hp_bios.local.json)
 ├── src/batterybar/      # application code (see PROJECT_MEMORY.md §Architecture)
 ├── docs/
 │   ├── REQUIREMENTS.md  # requirements (feature survey, MoSCoW, roadmap)

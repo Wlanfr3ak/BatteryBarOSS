@@ -30,10 +30,17 @@ uptime, ...).
 | 2026-10-03 | GitHub remote via **SSH** (`~/.ssh/fabian` key registered on GitHub), branch `main` | User chose SSH over HTTPS+GCM. |
 | 2026-10-03 | **Mandatory AI disclosure** (AGENTS.md §12): marked as generated with **Devin (Cognition AI), model SWE-2 High** — in README top block, `NOTICE`, app menu header, commit footers | User requirement: AI authorship must stay clearly visible. |
 | 2026-10-03 | **Estimation = hybrid fallback chain** (v0.3.0): fuel-gauge `RateOfDrain`/`mWh` via `CallNtPowerInformation(SYSTEM_BATTERY_STATE)` → own 5-min slope → driver `EstimatedTime` → Windows `BatteryLifeTime`; soft-min level 5 % | BatteryBar's documented strategy (Osiris Wiki); WMI `EstimatedRunTime` proven garbage by live probe. Findings: `docs/BATTERY_ESTIMATION.md`. |
-| 2026-10-03 | **Click = cycle display mode** (`default→time→percent→rate→capacity`), drag threshold 6 px | Confirmed BatteryBar behavior (`BatteryBarTextDisplayState` enum found via reflection on `BatteryBar.exe`). |
+| 2026-10-03 | **Click = cycle display mode** (`default→time→percent→rate→capacity→health` since v0.4.0), drag threshold 6 px | Confirmed BatteryBar behavior (`BatteryBarTextDisplayState` enum found via reflection on `BatteryBar.exe`). |
+| 2026-10-03 | **Battery statics via `root\wmi` + PowerShell one-shot subprocess** (v0.4.0) — NOT via `IOCTL_BATTERY_QUERY_INFORMATION` | `root\wmi` needs COM; a hidden ~300 ms `powershell` subprocess (OS component) is the cheapest stdlib-conformant path. The IOCTL route was investigated and abandoned: `SetupDiEnumDeviceInterfaces` finds no battery device interface on the dev machine (neither `GUID_DEVICE_BATTERY` `72631e55` nor class `72631e54`). |
+| 2026-10-03 | **HP Battery Health Manager via explicit BIOS marker** (v0.4.0): elevated opt-in tool `tools/read_bios_battery_mode.bat` → `root\hp\instrumentedbios` `HP_BIOSSetting` → cache `config/hp_bios.local.json` | User asked for a *unique marker, not inferred from battery values*. HP WMI exists on the machine but returns access denied without elevation — there is no non-privileged marker, so elevation is an explicit documented opt-in. |
 
 ## Environment facts (dev machine)
 
+- **Hardware: HP EliteBook 855 G7 Notebook PC**, BIOS `S77 Ver. 01.25.00`
+- Battery (real values via `root\wmi`): Design 55994 mWh, Full 53673 mWh,
+  120 cycles → wear ≈ 4.1 %; reports **no drain rate** (`RateOfDrain`
+  = `BATTERY_UNKNOWN_RATE`); HP WMI provider `root\hp\instrumentedbios`
+  + `HP_BIOSSetting` present but requires elevation
 - Windows 11 (10.0.26100), Git 2.52
 - Python 3.14.8 + 3.13 at `C:\Program Files\Python314\` / `Python313\`, `py` launcher present
 - Windows PowerShell 5.1 (no pwsh 7)
@@ -57,13 +64,17 @@ src/batterybar/
   __init__.py    # __version__ (single source of truth)
   __main__.py    # entry: DPI awareness, console encoding, logging, CLI (--selftest)
   battery.py     # Win32 GetSystemPowerStatus -> BatteryStatus;
-                 # CallNtPowerInformation(SYSTEM_BATTERY_STATE) -> PowerDetails (mWh/mW)
-  estimate.py    # TimeEstimator: rate -> slope -> driver -> windows fallback, soft-min level
+                 # CallNtPowerInformation(SYSTEM_BATTERY_STATE) -> PowerDetails (mWh/mW);
+                 # read_static_info() -> BatteryStaticInfo via root\wmi PS one-shot
+  sysinfo.py     # machine info via winreg (HKLM SystemInformation);
+                 # HP BHM cache reader (config/hp_bios.local.json)
+  estimate.py    # TimeEstimator: rate -> slope -> learned -> driver -> windows, soft-min level
   config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
   bar_window.py  # Tkinter floating bar: canvas, drag & drop, click-to-cycle display,
                  # context menu, click-through, hotkeys, warning toast, format templates
+tools/           # read_bios_battery_mode.bat/.ps1: elevated HP BIOS battery-mode query
 run.bat          # launch without console (pythonw), sets PYTHONPATH=src
-config/          # settings.json, secrets.example.json (+ gitignored: local/secrets)
+config/          # settings.json, secrets.example.json (+ gitignored: local/secrets/stats/hp_bios)
 docs/            # REQUIREMENTS, DEPENDENCIES, RESEARCH, BATTERY_ESTIMATION
 ```
 
@@ -78,8 +89,13 @@ Left-click (< 6 px) cycles `window.display_mode`; drag moves the bar.
 - [ ] More providers (Conky-style): CPU/RAM via `GetSystemTimes`/
       `GlobalMemoryStatusEx` (stdlib!), network IP, uptime, date/time
 - [ ] Theme system (JSON themes instead of BatteryBar's PNG themes)
-- [ ] Battery details via `IOCTL_BATTERY_QUERY_INFORMATION`: charge rate,
-      wear (FullCharged vs. DesignCapacity), statistics/history
+- [x] ~~Battery wear/details~~ v0.4.0: `root\wmi` statics (design/full mWh,
+      cycles, serial) + `health` display mode. Open: charge rate, long-term
+      statistics. **IOCTL path abandoned** (no battery device interface on
+      dev HW — see decisions).
+- [x] ~~Vendor BIOS battery mode~~ v0.4.0 (HP): explicit marker via
+      elevated `tools/read_bios_battery_mode.bat`; other vendors open if
+      ever needed
 - [x] ~~Own remaining-time estimate~~ v0.3.0: hybrid estimator implemented
       (rate -> slope -> driver -> windows). Still open: **persisted
       statistical discharge profile** (BatteryBar's statistical mode —
@@ -110,3 +126,15 @@ Left-click (< 6 px) cycles `window.display_mode`; drag moves the bar.
   instant estimate — exactly like BatteryBar's historical profile.
 - `q1 - floor <= 0` edge: estimates count to the soft-min floor, so
   "0:00" near the reserve is correct behavior, not a bug.
+- **setupapi + ctypes**: always set `restype`/`argtypes` or 64-bit
+  handles get truncated to c_int (err 6). More importantly:
+  `SetupDiEnumDeviceInterfaces` may simply return NO battery interface
+  on some machines — do not rely on the IOCTL path, `root\wmi` works.
+- **HP WMI** (`root\hp\instrumentedbios`): `HP_BIOSSetting` /
+  `HP_BIOSSettingInterface` exist on EliteBooks but every query fails
+  with access denied unless elevated. There is no unprivileged way to
+  read the Battery Health Manager mode — opt-in elevated tool + cache.
+- `Win32_Battery` fields (`EstimatedRunTime`, capacities) are
+  sentinel/empty on this hardware; the real values live in `root\wmi`
+  classes — and those are reachable without COM code by spawning
+  `powershell -NoProfile -Command Get-WmiObject ...` once in a while.

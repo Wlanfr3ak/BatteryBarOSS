@@ -3,7 +3,7 @@
 Authoritative table per `AGENTS.md` section 4. Kept updated with every change.
 **Runtime principle: Python standard library only – no `pip install` needed.**
 
-Status: 2026-10-03 (v0.2.0)
+Status: 2026-10-03 (v0.4.0)
 
 ---
 
@@ -13,11 +13,12 @@ Status: 2026-10-03 (v0.2.0)
 |---|---|---|---|---|---|---|
 | 1 | **Python** | >= 3.11 (developed with 3.14.8) | Interpreter/runtime | https://www.python.org/downloads/ | [PSF-2.0](https://docs.python.org/3/license.html) (OSI-approved, GPL-compatible) | `winget install Python.Python.3.14` or the installer from python.org. Enable "Add python.exe to PATH"; Tkinter is included in the standard installer |
 | 2 | **Tkinter / tk** | bundled with Python | GUI window (floating bar, canvas, menu) | bundled with Python (Tk 8.6.x) | Tcl/Tk License (BSD-style, free) | included – no separate step; with "custom install" keep *tcl/tk and IDLE* enabled |
-| 3 | **Win32 API** | OS component | Battery status (`kernel32!GetSystemPowerStatus`), window styles (`user32`), sound (`winmm` via `winsound`) | part of Windows | Microsoft Windows – no separate license needed | not installable – OS component, accessed via `ctypes`/`winsound` (stdlib) |
+| 3 | **Win32 API** | OS component | Battery status (`kernel32!GetSystemPowerStatus`, `powrprof!CallNtPowerInformation`), window styles (`user32`), sound (`winmm` via `winsound`), machine info (registry via `winreg`) | part of Windows | Microsoft Windows – no separate license needed | not installable – OS component, accessed via `ctypes`/`winsound`/`winreg` (stdlib) |
+| 4 | **Windows PowerShell** | 5.1+ (OS component) | One-shot query of `root\wmi` battery static classes (design/full capacity, cycles — COM has no stdlib binding); optional elevated HP BIOS mode query (`tools/read_bios_battery_mode.*`) | ships with Windows | Microsoft Windows – OS component | not installable – already on every Windows 10/11 system; launched hidden via `subprocess` |
 
 **Python modules used (all standard library):**
 `tkinter`, `ctypes`, `json`, `argparse`, `logging`, `logging.handlers`,
-`pathlib`, `dataclasses`, `winsound`, `sys`, `os`
+`pathlib`, `dataclasses`, `winsound`, `sys`, `os`, `subprocess`, `winreg`
 
 ## 2. Development tools
 
@@ -52,4 +53,9 @@ there with source and license. Their raw files live locally under
 - Windows 10/11 (developed on Windows 11 24H2)
 - Python 3.11+ required for the type-annotation style used;
   tested with 3.14
-- No admin rights required
+- No admin rights required for normal operation; the **optional**
+  HP BIOS battery-mode readout (`tools/read_bios_battery_mode.bat`)
+  triggers a one-time UAC prompt (HP WMI provider requires elevation)
+- `root\wmi` battery statics are queried via a PowerShell one-shot
+  (~300 ms, hourly + on reload); if PowerShell is unavailable the
+  fields simply stay empty
