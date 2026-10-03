@@ -34,6 +34,17 @@ Perspektivisch erweiterbar zu einem Conky-/BGInfo-artigen Desktop-Info-Tool
 - .NET-Runtimes 8/9/10 vorhanden, **kein .NET SDK** (relevant falls Stack-Wechsel)
 - Repo-Pfad enthält Leerzeichen → Pfade in Skripten immer quoten
 
+## GitHub / Remote
+
+- Remote: `git@github.com:Wlanfr3ak/BatteryBarOSS.git` (SSH), Branch `main`
+- GitHub-Account: **Wlanfr3ak**, Git-Autor `Wlanfr3ak
+  <6292882+Wlanfr3ak@users.noreply.github.com>`
+- SSH-Auth: Key `~/.ssh/fabian` (ed25519, bei GitHub hinterlegt am
+  2026-10-03); `~/.ssh/config` enthält `Host github.com` mit
+  `IdentityFile ~/.ssh/fabian` + `IdentitiesOnly yes`
+- `gh` CLI nicht installiert; Git Credential Manager 2.6.1 vorhanden
+  (HTTPS-Fallback wäre damit möglich)
+
 ## Architektur-Stand
 
 ```

@@ -5,6 +5,15 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 Regeln: siehe `AGENTS.md` §1–§3.
 
+## [0.1.1] - 2026-10-03
+
+### Hinzugefügt
+
+- **GitHub-Anbindung dokumentiert** (`PROJECT_MEMORY.md`): Remote-URL
+  (`git@github.com:Wlanfr3ak/BatteryBarOSS.git`), SSH-Key-Setup
+  (`~/.ssh/fabian`, `Host github.com`-Eintrag), Account-/Autor-Info –
+  erleichtert Wiederaufnahme nach frischem Clone und auf anderen Maschinen.
+
 ## [0.1.0] - 2026-10-03
 
 Erster MVP. Grundstein des Projekts: Projektregeln, Dokumentationsgerüst und
