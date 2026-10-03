@@ -3,6 +3,13 @@
     --text: #e8e8e8; --dim: #9aa0a6; --accent: #4caf50; --link: #6db3f2;
   }
   * { box-sizing: border-box; margin: 0; }
+  .lang { text-align: right; padding: 12px 4px 0; }
+  .lang a {
+    color: var(--dim); text-decoration: none; font-size: 0.85rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; background: var(--panel);
+  }
+  .lang a:hover { color: var(--text); border-color: var(--accent); }
   body {
     background: var(--bg); color: var(--text);
     font-family: "Segoe UI", system-ui, sans-serif;

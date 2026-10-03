@@ -80,10 +80,11 @@ uptime, ...).
   Gotcha: never "Re-run" a failed pages job — each attempt adds another
   `github-pages` artifact and `deploy-pages` then fails with
   "Multiple artifacts". Push to `site/` (or dispatch) for a fresh run.
-- **Operator / legal** (site/impressum.html + datenschutz.html):
-  Fabian Horst ("Wlanfr3ak"), c/o Toppoint e.V., Holzkoppelweg 20,
-  24118 Kiel. Contact channel listed = GitHub Issues (no public
-  e-mail so far — adding one later is worth an Impressum update).
+- **Operator / legal** (site/impressum.html + datenschutz.html, German
+  mirror under site/de/): Fabian Horst ("Wlanfr3ak"), c/o Toppoint e.V.,
+  Holzkoppelweg 20, 24118 Kiel. Contact channel listed = GitHub Issues
+  (no public e-mail so far — adding one later is worth an Impressum
+  update). Site is bilingual: EN = site/, DE = site/de/, kept in sync.
 - SSH auth: key `~/.ssh/fabian` (ed25519, registered on GitHub 2026-10-03);
   `~/.ssh/config` contains `Host github.com` with
   `IdentityFile ~/.ssh/fabian` + `IdentitiesOnly yes`

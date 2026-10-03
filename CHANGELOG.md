@@ -5,6 +5,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.8.3] - 2026-10-03
+
+### Added
+
+- **Bilingual website**: `site/` stays English (canonical), a full
+  German mirror now lives at `site/de/` — translated landing page,
+  Impressum and Datenschutz, matching layout via shared
+  `../style.css`. A flag switcher (🇩🇪/🇬🇧 chip, top-right of every
+  page) toggles the corresponding page's language; the German landing
+  page also localizes the release-download buttons injected by the
+  GitHub-API script.
+- `AGENTS.md` §13 now codifies the bilingual rule: every site page —
+  including legal — exists in both languages and is updated together;
+  `site/de/` is the explicit exception to the English-only rule.
+
+### Changed
+
+- Legal pages rewritten in **English** at `site/impressum.html` and
+  `site/datenschutz.html` (project language); the previous German
+  texts moved unchanged to `site/de/` as the mirror.
+
 ## [0.8.2] - 2026-10-03
 
 ### Added

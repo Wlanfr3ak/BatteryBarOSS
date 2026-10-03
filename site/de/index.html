@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BatteryBar OSS — schwebende Akku-Leiste für Windows</title>
+<meta name="description" content="Open-Source Akku-Statusleiste für Windows 11 — ein freier Ersatz für das eingestellte BatteryBar Pro.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<p class="lang"><a href="../" title="English">🇬🇧 English</a></p>
+<main>
+  <header>
+    <h1>BatteryBar OSS <span class="ver" id="ver"></span></h1>
+    <p class="tagline">Die quelloffene schwebende Akku-Leiste für Windows —
+    ein freier Nachfolger des eingestellten BatteryBar&nbsp;Pro.</p>
+    <div class="actions" id="downloads">
+      <a class="btn primary" href="https://github.com/Wlanfr3ak/BatteryBarOSS/releases/latest">
+        Download für Windows<small>neueste Version</small></a>
+      <a class="btn ghost" href="https://github.com/Wlanfr3ak/BatteryBarOSS">
+        GitHub-Repository<small>Quellcode, Doku &amp; Issues</small></a>
+    </div>
+    <p class="ghcallout">
+      ⭐ Fehler gefunden oder eine Idee?
+      <a href="https://github.com/Wlanfr3ak/BatteryBarOSS/issues">Issue auf GitHub eröffnen</a> —
+      die komplette Dokumentation liegt
+      <a href="https://github.com/Wlanfr3ak/BatteryBarOSS">im Repository</a>.
+    </p>
+    <p class="note">
+      <b>Windows SmartScreen:</b> Die Binärdateien sind noch nicht
+      code-signiert, daher kann beim ersten Start ein blauer
+      <i>„Windows protected your PC"</i>-Dialog erscheinen — erwartet bei
+      einer neuen unsignierten EXE, keine Malware.
+      <code>Weitere Informationen</code> → <code>Trotzdem ausführen</code>
+      klicken. Jede Release enthält <code>SHA256SUMS.txt</code> zur
+      Integritätsprüfung (<code>certutil -hashfile datei.exe SHA256</code>).
+      Echte Signierung über die <b>SignPath Foundation</b> ist geplant.
+    </p>
+  </header>
+
+  <section>
+    <h2>Eine Leiste, alles Wichtige</h2>
+    <figure class="shotwrap">
+      <img class="shot" src="../screenshot-compare.jpg"
+           alt="BatteryBar OSS (oben), originales BatteryBar (Mitte), Windows-Tray (unten)">
+      <span class="tag ours" style="top:16%">BatteryBar OSS — dieses Projekt</span>
+      <span class="tag" style="top:50%">BatteryBar Pro (Original)</span>
+      <span class="tag" style="top:84%">Windows-11-Tray</span>
+      <figcaption>Gleicher Akku, drei Anzeigen — unsere ist die obere.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="grid">
+      <div class="card"><h3>Echte Restlaufzeit-Schätzung</h3>
+        <p>Fuel-Gauge-mWh/mW-Werte, lernender Sitzungsdurchschnitt und
+        Countdown bis zur konfigurierbaren Reserve — plausibel Sekunden
+        nach dem Unpluggen.</p></div>
+      <div class="card"><h3>Akku-Gesundheit</h3>
+        <p>Echte Design- vs. Vollladekapazität, Verschleiß-%, Ladezyklen
+        und optionaler HP-BIOS-Akkumodus (BHM).</p></div>
+      <div class="card"><h3>Null Abhängigkeiten</h3>
+        <p>Zur Laufzeit nur Python-Standardbibliothek; das Release kommt
+        als portable EXE oder Per-User-Installer — keine Adminrechte.</p></div>
+      <div class="card"><h3>Deins zum Formen</h3>
+        <p>Ziehen, Größe ändern, Click-through, Hotkeys, JSON-Themes und
+        Formatstring-Anzeige — plus Self-Updates von GitHub Releases.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>MIT-Lizenz · gebaut mit <a href="https://devin.ai">Devin</a>
+    (Cognition AI, SWE-2 High) ·
+    <a href="https://github.com/Wlanfr3ak/BatteryBarOSS">github.com/Wlanfr3ak/BatteryBarOSS</a></p>
+    <p style="margin-top:8px"><a href="impressum.html">Impressum</a> ·
+    <a href="datenschutz.html">Datenschutz</a></p>
+  </footer>
+</main>
+<script>
+fetch("https://api.github.com/repos/Wlanfr3ak/BatteryBarOSS/releases/latest")
+  .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+  .then(function (rel) {
+    var ver = (rel.tag_name || "").replace(/^v/, "");
+    document.getElementById("ver").textContent = rel.tag_name || "";
+    var setup = null, portable = null;
+    (rel.assets || []).forEach(function (a) {
+      if (/BatteryBarOSS-Setup-.*\.exe$/.test(a.name)) setup = a;
+      else if (/BatteryBarOSS-.*\.exe$/.test(a.name)) portable = a;
+    });
+    if (!setup || !portable) return;
+    document.getElementById("downloads").innerHTML =
+      '<a class="btn primary" href="' + setup.browser_download_url + '">' +
+      'Installer herunterladen<small>BatteryBarOSS-Setup-' + ver + '.exe</small></a>' +
+      '<a class="btn ghost" href="' + portable.browser_download_url + '">' +
+      'Portable EXE<small>BatteryBarOSS-' + ver + '.exe · ohne Installation</small></a>';
+  })
+  .catch(function () { /* statische Fallback-Links behalten */ });
+</script>
+</body>
+</html>

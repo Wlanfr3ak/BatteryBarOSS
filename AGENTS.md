@@ -159,6 +159,8 @@ At the start of every session, read this file and `PROJECT_MEMORY.md` first.
   client-side `api.github.com` fetch for release data, no cookies /
   no tracking / no webfonts. If the site gains forms, analytics or
   embeds, the notice must be updated accordingly — same commit.
-- Both legal texts are kept in **German** (the legally relevant
-  language for a German-operated site); this is an exception to the
-  English-only rule in section 7.
+- **The site is bilingual**: English is canonical at `site/`, a full
+  German mirror lives at `site/de/`. Every page — including the legal
+  pages — must exist in both languages, carry the flag switcher, and be
+  updated together in the same commit. The German mirror is an explicit
+  exception to the English-only rule in section 7.
