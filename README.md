@@ -89,6 +89,14 @@ autostart checkbox and a start-menu entry. Uninstall via Windows
 "Apps". User data (settings, stats, logs) lives in
 `%LOCALAPPDATA%\BatteryBarOSS\`.
 
+> **SmartScreen note:** the binaries are not code-signed yet, so Windows
+> may show a blue *"Windows protected your PC"* dialog on first launch.
+> Click **More info → Run anyway** — that is expected for a new unsigned
+> exe. Every release also ships `SHA256SUMS.txt` for integrity checks
+> (`certutil -hashfile BatteryBarOSS-Setup-X.Y.Z.exe SHA256`).
+> Proper code signing via the **SignPath Foundation** program is on the
+> roadmap (see `docs/DEPENDENCIES.md`).
+
 ### Option B — from source
 
 ```bat

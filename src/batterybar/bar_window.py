@@ -90,6 +90,7 @@ class BarWindow:
         self._tooltip_hide_after: str | None = None
         self._tipanim_after: str | None = None
         self._tipanim: dict | None = None
+        self._settings_win: tk.Toplevel | None = None
 
         self.root = tk.Tk()
         self.root.title(f"{__app_name__} v{__version__}")
@@ -451,6 +452,58 @@ class BarWindow:
         self._tooltip_label.configure(font=("Consolas", 9))
         self._tipanim_after = None
         self._tooltip_anim_tick()
+        if updater.available():
+            threading.Thread(
+                target=self._egg_check_worker, daemon=True
+            ).start()
+
+    def _egg_check_worker(self) -> None:
+        """Fresh release check every time the easter egg shows."""
+        try:
+            info = updater.check_for_update()
+            ok = True
+        except Exception:
+            log.exception("easter-egg update check failed")
+            info, ok = None, False
+        try:
+            self.root.after(0, lambda: self._egg_check_done(info, ok))
+        except tk.TclError:
+            pass
+
+    def _egg_check_done(
+        self, info: updater.UpdateInfo | None, ok: bool
+    ) -> None:
+        if self._tooltip is None or self._tooltip_label is None:
+            return
+        parent = self._tooltip_label.master
+        if info is None:
+            text = "latest release installed" if ok else "update check failed"
+            lbl = tk.Label(
+                parent, text=text, bg="#ffffe1", fg="#666666",
+                font=("Segoe UI", 8), padx=8, pady=2, anchor="w",
+            )
+            lbl.pack(fill="x")
+        else:
+            lbl = tk.Label(
+                parent,
+                text=f"⬆ update to v{info.version} — install & restart",
+                cursor="hand2", bg="#ffffe1", fg="#2e7d32",
+                font=("Segoe UI", 9, "bold"), padx=8, pady=4,
+            )
+            lbl.pack(fill="x")
+            lbl.bind("<Button-1>", lambda _e: self._egg_install(info, lbl))
+        lbl.bind("<Enter>", self._tooltip_enter)
+        lbl.bind("<Leave>", self._tooltip_leave)
+
+    def _egg_install(self, info: updater.UpdateInfo, lbl: tk.Label) -> None:
+        try:
+            lbl.configure(
+                text=f"downloading v{info.version} …", cursor="",
+                fg="#666666",
+            )
+        except tk.TclError:
+            pass
+        self._start_download(info)
 
     def _tooltip_anim_tick(self) -> None:
         state = self._tipanim
@@ -550,6 +603,8 @@ class BarWindow:
             command=self._toggle_autostart,
         )
         menu.add_separator()
+        menu.add_command(label="Settings…", command=self._open_settings)
+        menu.add_separator()
         menu.add_command(
             label=f"Reset size ({config.DEFAULT_SETTINGS['window']['width']}×"
                   f"{config.DEFAULT_SETTINGS['window']['height']})",
@@ -601,6 +656,94 @@ class BarWindow:
         self.root.geometry(f"{w['width']}x{w['height']}+{x}+{y}")
         if self._last is not None:
             self._redraw(*self._last)
+
+    # ------------------------------------------------------------ settings
+    def _open_settings(self) -> None:
+        """Small settings window — scaffold for the future desktop-overlay
+        (provider) settings."""
+        if self._settings_win is not None:
+            try:
+                self._settings_win.lift()
+                return
+            except tk.TclError:
+                self._settings_win = None
+        top = tk.Toplevel(self.root)
+        self._settings_win = top
+        top.title(f"{__app_name__} — Settings")
+        top.attributes("-topmost", True)
+        top.resizable(False, False)
+        top.configure(bg="#1e1e1e", padx=14, pady=12)
+        top.protocol("WM_DELETE_WINDOW", self._close_settings)
+
+        def section(title: str) -> tk.LabelFrame:
+            f = tk.LabelFrame(
+                top, text=f" {title} ", bg="#1e1e1e", fg="#9aa0a6",
+                padx=10, pady=6, font=("Segoe UI", 9),
+            )
+            f.pack(fill="x", pady=(0, 10))
+            return f
+
+        def check(parent, text, var, cmd) -> None:
+            tk.Checkbutton(
+                parent, text=text, variable=var, command=cmd,
+                bg="#1e1e1e", fg="#e8e8e8", selectcolor="#333333",
+                activebackground="#1e1e1e", activeforeground="#e8e8e8",
+                anchor="w", font=("Segoe UI", 9),
+            ).pack(fill="x")
+
+        f_bar = section("Bar")
+        check(f_bar, "Always on top", self._var_topmost, self._toggle_topmost)
+        check(f_bar, "Click-through  (Ctrl+Alt+B)", self._var_click,
+              self._toggle_click_through)
+        check(f_bar, "Lock position", self._var_lock, self._toggle_lock)
+        check(f_bar, "Start with Windows", self._var_autostart,
+              self._toggle_autostart)
+
+        f_upd = section("Updates")
+        self._var_updates = tk.BooleanVar(
+            value=bool(self.settings["updates"].get("enabled"))
+        )
+        check(f_upd, "Automatic update checks (GitHub Releases)",
+              self._var_updates, self._toggle_updates)
+        if not updater.available():
+            tk.Label(
+                f_upd, text="source build — updater disabled",
+                bg="#1e1e1e", fg="#666666", font=("Segoe UI", 8),
+                anchor="w",
+            ).pack(fill="x")
+
+        # Placeholder section: prepared for the desktop-overlay provider
+        # widget settings (FR-11/FR-17 — CPU/RAM/time fields).
+        f_ovl = section("Desktop overlay")
+        tk.Label(
+            f_ovl,
+            text="provider-based desktop widget settings\n"
+                 "(CPU / RAM / clock fields — planned, FR-11 / FR-17)",
+            bg="#1e1e1e", fg="#666666", justify="left",
+            font=("Segoe UI", 8),
+        ).pack(anchor="w")
+
+        top.update_idletasks()
+        x = self.root.winfo_x() + self.root.winfo_width() - top.winfo_reqwidth()
+        y = self.root.winfo_y() - top.winfo_reqheight() - 8
+        if y < 0:
+            y = self.root.winfo_y() + self.root.winfo_height() + 8
+        top.geometry(f"+{x}+{y}")
+
+    def _close_settings(self) -> None:
+        if self._settings_win is not None:
+            try:
+                self._settings_win.destroy()
+            except tk.TclError:
+                pass
+            self._settings_win = None
+
+    def _toggle_updates(self) -> None:
+        value = bool(self._var_updates.get())
+        config.save_local({"updates": {"enabled": value}})
+        self.settings["updates"]["enabled"] = value
+        if value:
+            self._schedule_update_check(force=False)
 
     def _hp_bhm(self) -> str | None:
         if not self._machine.is_hp:

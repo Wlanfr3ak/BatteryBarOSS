@@ -87,10 +87,10 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 | FR-20 | Rounded corners / icons via PNG assets with alpha (chroma alternative) |
 | FR-21 | Tooltip with details (capacity mWh, health, voltage) | ✅ v0.5.0 — hover tooltip with all details incl. estimate source; v0.7.1: after ~5 s the tooltip plays an ASCII decrypt animation revealing the version (easter egg); v0.7.2: adds a clickable GitHub repo link via tooltip hover-grace bridging |
 | FR-25 | Resizable bar (edge drag) | ✅ v0.5.0 — right/bottom edge + corner grips, persisted size, "Reset size" menu entry |
-| FR-26 | Self-update from GitHub Releases: one-time consent question, HTTPS-only, SHA-256-verified download (`SHA256SUMS.txt` release asset), one-step replace+relaunch, settings preserved | ✅ v0.7.0 — `updater.py`, frozen builds only |
+| FR-26 | Self-update from GitHub Releases: one-time consent question, HTTPS-only, SHA-256-verified download (`SHA256SUMS.txt` release asset), one-step replace+relaunch, settings preserved | ✅ v0.7.0 — `updater.py`, frozen builds only; v0.8.0: easter-egg tooltip runs a fresh check and offers an "install & restart" button |
 | FR-22 | Mini history graph (discharge curve) in a popup |
 | FR-23 | UI translations (de/en) – English is the default since v0.2.0 |
-| FR-24 | Settings dialog (GUI instead of JSON editing) |
+| FR-24 | Settings dialog (GUI instead of JSON editing) | partially ✅ v0.8.0 — context-menu "Settings…" window: bar toggles + update-check toggle + "Desktop overlay" placeholder section (preparation for FR-11/FR-17); JSON editing remains for the rest |
 
 ### Won't (rejected)
 

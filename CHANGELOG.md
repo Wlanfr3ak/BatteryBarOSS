@@ -5,6 +5,31 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.8.0] - 2026-10-03
+
+### Added
+
+- **Settings window** — new context-menu entry "Settings…" opens a
+  small always-on-top dialog, scaffolded for the future
+  desktop-overlay/provider settings (FR-11/FR-17): currently a "Bar"
+  section mirroring the existing toggles, an "Updates" section with an
+  "Automatic update checks" checkbox (writes `updates.enabled`;
+  enabling it kicks off a due check immediately; source builds show
+  "updater disabled") and a disabled "Desktop overlay" placeholder
+  section.
+- **Easter-egg update flow** — every time the tooltip ASCII animation
+  triggers (frozen builds), a fresh GitHub release check runs; on a
+  newer release the tooltip shows a clickable
+  "⬆ update to vX.Y.Z — install & restart" button that runs the
+  verified one-step update (download → SHA-256 → helper bat replaces
+  the exe → relaunch; settings survive). Otherwise a dim
+  "latest release installed" / "update check failed" line appears.
+- **SmartScreen guidance** — `site/index.html` gets a highlighted note
+  under the download buttons and README gets the same in the installer
+  section: expected unsigned-binary warning, "More info → Run anyway",
+  `SHA256SUMS.txt` integrity check via `certutil`, and the pointer to
+  the planned SignPath Foundation signing.
+
 ## [0.7.4] - 2026-10-03
 
 ### Added
