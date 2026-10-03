@@ -149,8 +149,8 @@ At the start of every session, read this file and `PROJECT_MEMORY.md` first.
 ## 13. Legal pages (website)
 
 - `batterybaross.com` is operated from Germany — the site **must** keep a
-  DDG-compliant imprint (`site/impressum.html`) and a GDPR privacy
-  notice (`site/datenschutz.html`), linked in the footer of every page.
+  DDG-compliant imprint (`site/imprint.html`) and a GDPR privacy
+  notice (`site/privacy.html`), linked in the footer of every page.
 - Operator identity (name, c/o address) is maintained in
   `PROJECT_MEMORY.md` — if it changes, update the legal pages in the
   same commit.

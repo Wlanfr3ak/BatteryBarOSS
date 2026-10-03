@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.8.5] - 2026-10-03
+
+### Changed
+
+- English privacy page renamed `site/datenschutz.html` →
+  `site/privacy.html` with footer label "Privacy" and a clean English
+  `<title>` (matching the imprint rename in v0.8.4); the German mirror
+  keeps `de/datenschutz.html`. Doc references in `AGENTS.md` §13 and
+  `PROJECT_MEMORY.md` updated to the English filenames.
+
 ## [0.8.4] - 2026-10-03
 
 ### Changed
