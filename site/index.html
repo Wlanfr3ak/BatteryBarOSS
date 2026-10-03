@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BatteryBar OSS — floating battery bar for Windows</title>
+<meta name="description" content="Open-source floating battery status bar for Windows 11 — a free replacement for the discontinued BatteryBar Pro.">
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #262626; --border: #3a3a3a;
+    --text: #e8e8e8; --dim: #9aa0a6; --accent: #4caf50; --link: #6db3f2;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    line-height: 1.55; padding: 0 16px 64px;
+  }
+  main { max-width: 860px; margin: 0 auto; }
+  header { text-align: center; padding: 72px 0 32px; }
+  h1 { font-size: 2.6rem; letter-spacing: -0.5px; }
+  h1 .ver { color: var(--accent); font-size: 1rem; vertical-align: super; }
+  .tagline { color: var(--dim); font-size: 1.15rem; margin-top: 10px; }
+  .actions { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 8px;
+    text-decoration: none; font-weight: 600; border: 1px solid var(--border);
+  }
+  .btn.primary { background: var(--accent); color: #0b1a0c; border-color: var(--accent); }
+  .btn.ghost { color: var(--text); background: var(--panel); }
+  .btn small { display: block; font-weight: 400; font-size: 0.75rem; opacity: 0.8; }
+  section { margin-top: 56px; }
+  h2 { font-size: 1.3rem; margin-bottom: 14px; }
+  .shot { width: 100%; border: 1px solid var(--border); border-radius: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .card h3 { font-size: 0.95rem; margin-bottom: 6px; }
+  .card p { color: var(--dim); font-size: 0.9rem; }
+  footer { margin-top: 64px; text-align: center; color: var(--dim); font-size: 0.85rem; }
+  footer a { color: var(--link); }
+  code { background: var(--panel); border-radius: 4px; padding: 1px 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>BatteryBar OSS <span class="ver" id="ver"></span></h1>
+    <p class="tagline">The open-source floating battery bar for Windows —
+    a free successor to the discontinued BatteryBar&nbsp;Pro.</p>
+    <div class="actions" id="downloads">
+      <a class="btn primary" href="https://github.com/Wlanfr3ak/BatteryBarOSS/releases/latest">
+        Download for Windows<small>latest release</small></a>
+      <a class="btn ghost" href="https://github.com/Wlanfr3ak/BatteryBarOSS">
+        GitHub repository<small>source, docs &amp; issues</small></a>
+    </div>
+  </header>
+
+  <section>
+    <h2>One bar, everything that matters</h2>
+    <img class="shot" src="screenshot-compare.jpg"
+         alt="BatteryBar OSS (top), original BatteryBar (middle), Windows tray (bottom)">
+  </section>
+
+  <section>
+    <div class="grid">
+      <div class="card"><h3>Real remaining-time estimate</h3>
+        <p>Fuel-gauge mWh/mW readings, session-average drain learning and a
+        soft-reserve countdown — plausible seconds after unplugging.</p></div>
+      <div class="card"><h3>Battery health</h3>
+        <p>True design vs. full-charge capacity, wear %, cycle count and
+        optional HP BIOS battery-mode readout.</p></div>
+      <div class="card"><h3>Zero dependencies</h3>
+        <p>Python standard library only at runtime; the release ships as a
+        single portable exe or per-user installer — no admin rights.</p></div>
+      <div class="card"><h3>Yours to shape</h3>
+        <p>Drag, resize, click-through, hotkeys, JSON themes and a
+        format-string display — plus self-updates from GitHub Releases.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>MIT licensed · built with <a href="https://devin.ai">Devin</a>
+    (Cognition AI, SWE-2 High) ·
+    <a href="https://github.com/Wlanfr3ak/BatteryBarOSS">github.com/Wlanfr3ak/BatteryBarOSS</a></p>
+  </footer>
+</main>
+<script>
+fetch("https://api.github.com/repos/Wlanfr3ak/BatteryBarOSS/releases/latest")
+  .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+  .then(function (rel) {
+    var ver = (rel.tag_name || "").replace(/^v/, "");
+    document.getElementById("ver").textContent = rel.tag_name || "";
+    var setup = null, portable = null;
+    (rel.assets || []).forEach(function (a) {
+      if (/BatteryBarOSS-Setup-.*\.exe$/.test(a.name)) setup = a;
+      else if (/BatteryBarOSS-.*\.exe$/.test(a.name)) portable = a;
+    });
+    if (!setup || !portable) return;
+    document.getElementById("downloads").innerHTML =
+      '<a class="btn primary" href="' + setup.browser_download_url + '">' +
+      'Download installer<small>BatteryBarOSS-Setup-' + ver + '.exe</small></a>' +
+      '<a class="btn ghost" href="' + portable.browser_download_url + '">' +
+      'Portable exe<small>BatteryBarOSS-' + ver + '.exe · no install</small></a>';
+  })
+  .catch(function () { /* keep static fallback links */ });
+</script>
+</body>
+</html>

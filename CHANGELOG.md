@@ -5,6 +5,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.7.3] - 2026-10-03
+
+### Added
+
+- **Project website** at the new custom domain `batterybaross.com`
+  (also reachable via `www.` and `wlanfr3ak.github.io/BatteryBarOSS`):
+  - `site/index.html` — static dark-theme landing page (hero, feature
+    cards, comparison screenshot, download buttons). A small
+    client-side fetch to the GitHub API rewrites the buttons to the
+    exact versioned release assets; without JS they fall back to the
+    latest-release page.
+  - `site/CNAME` — custom-domain declaration for GitHub Pages.
+  - `.github/workflows/pages.yml` — Pages deployment on every push to
+    `main` touching `site/**` (`upload-pages-artifact` +
+    `deploy-pages`); the screenshot is copied from
+    `docs/screenshot-compare.jpg` at deploy time so it stays
+    single-source.
+- DNS (registrar-side, documented for the record): apex `A` +
+  `AAAA` records to the GitHub Pages IPs, `www` `CNAME` to
+  `wlanfr3ak.github.io` — verified propagated 2026-10-03.
+
 ## [0.7.2] - 2026-10-03
 
 ### Added

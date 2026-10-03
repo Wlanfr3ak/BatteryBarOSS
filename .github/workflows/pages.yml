@@ -1,0 +1,39 @@
+name: pages
+
+# Deploys the static landing page in site/ to GitHub Pages
+# (custom domain via site/CNAME: batterybaross.com).
+# Requires repo Settings -> Pages -> Source: "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/pages.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble site (copy screenshot asset)
+        shell: pwsh
+        run: Copy-Item docs\screenshot-compare.jpg site\screenshot-compare.jpg
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - uses: actions/deploy-pages@v4
+        id: deploy

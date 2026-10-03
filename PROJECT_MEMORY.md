@@ -71,6 +71,12 @@ uptime, ...).
   (no SmartScreen advantage). Open task: SignPath application +
   `release.yml` signing step.
 - GitHub account: **Wlanfr3ak**, git author `Wlanfr3ak <6292882+Wlanfr3ak@users.noreply.github.com>`
+- **Domain + site** (v0.7.3): `batterybaross.com` registered by the
+  maintainer; DNS = apex A/AAAA to GitHub Pages IPs + `www` CNAME →
+  `wlanfr3ak.github.io`. Site lives in `site/` (index.html + CNAME),
+  deployed by `.github/workflows/pages.yml` on pushes to `main`
+  (requires repo Settings → Pages → Source: "GitHub Actions").
+  Screenshot is copied from `docs/` at deploy time — keep it there.
 - SSH auth: key `~/.ssh/fabian` (ed25519, registered on GitHub 2026-10-03);
   `~/.ssh/config` contains `Host github.com` with
   `IdentityFile ~/.ssh/fabian` + `IdentitiesOnly yes`

@@ -11,7 +11,8 @@ Conky/BGInfo-style desktop info widget.
 - **Zero external dependencies** – runs entirely on the Python standard
   library (Tkinter + Win32 API via ctypes)
 - Ready right after `git clone`: double-click `run.bat`, done
-- Current version: see `CHANGELOG.md` | License: MIT
+- Website: **[batterybaross.com](https://batterybaross.com)** ·
+  Current version: see `CHANGELOG.md` | License: MIT
 
 ![Comparison screenshot](docs/screenshot-compare.jpg)
 
@@ -21,7 +22,7 @@ battery indicator.*
 
 ---
 
-## Features (v0.7.0)
+## Features (v0.7.3)
 
 - Floating, frameless, transparent status bar (always-on-top)
 - Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
