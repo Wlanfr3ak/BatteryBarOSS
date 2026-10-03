@@ -14,6 +14,10 @@ log = logging.getLogger(__name__)
 CHROMA = "#ff00ff"  # chroma-key color -> fully transparent window background
 _CLICK_TOLERANCE_PX = 6
 _DISPLAY_MODES = ("default", "time", "percent", "rate", "capacity", "health")
+_RESIZE_MARGIN = 8  # px from right/bottom edge that acts as resize grip
+_MIN_W, _MIN_H = 140, 18
+_MAX_W, _MAX_H = 1200, 160
+_TOOLTIP_DELAY_MS = 400
 
 _GWL_EXSTYLE = -20
 _WS_EX_LAYERED = 0x00080000
@@ -42,6 +46,9 @@ class BarWindow:
         self._machine = sysinfo.read_machine_info()
         self._static: battery.BatteryStaticInfo | None = None
         self._static_at = 0.0
+        self._resizing: str | None = None  # "we" | "ns" | "se" while edge-dragging
+        self._tooltip: tk.Toplevel | None = None
+        self._tooltip_after: str | None = None
 
         self.root = tk.Tk()
         self.root.title(f"{__app_name__} v{__version__}")
@@ -133,16 +140,51 @@ class BarWindow:
         self.canvas.bind("<B1-Motion>", self._drag_move)
         self.canvas.bind("<ButtonRelease-1>", self._drag_end)
         self.canvas.bind("<Button-3>", self._show_menu)
+        self.canvas.bind("<Motion>", self._motion)
+        self.canvas.bind("<Enter>", self._motion)
+        self.canvas.bind("<Leave>", self._leave)
+
+    def _resize_mode(self, event: tk.Event) -> str | None:
+        """Resize grip hit-test: right edge = width, bottom = height."""
+        w = self._win_cfg()
+        right = event.x >= int(w["width"]) - _RESIZE_MARGIN
+        bottom = event.y >= int(w["height"]) - _RESIZE_MARGIN
+        if right and bottom:
+            return "se"
+        if right:
+            return "we"
+        if bottom:
+            return "ns"
+        return None
 
     def _drag_start(self, event: tk.Event) -> None:
         self._drag_origin = (event.x_root, event.y_root)
-        if not self._win_cfg()["lock_position"]:
+        self._resizing = self._resize_mode(event)
+        self._hide_tooltip()
+        self._cancel_tooltip_timer()
+        if self._resizing or self._win_cfg()["lock_position"]:
+            self._drag_offset = None
+        else:
             self._drag_offset = (
                 event.x_root - self.root.winfo_x(),
                 event.y_root - self.root.winfo_y(),
             )
 
     def _drag_move(self, event: tk.Event) -> None:
+        if self._resizing:
+            w = self._win_cfg()
+            x0, y0 = self.root.winfo_x(), self.root.winfo_y()
+            nw = int(w["width"])
+            nh = int(w["height"])
+            if self._resizing in ("we", "se"):
+                nw = max(_MIN_W, min(_MAX_W, event.x_root - x0))
+            if self._resizing in ("ns", "se"):
+                nh = max(_MIN_H, min(_MAX_H, event.y_root - y0))
+            w["width"], w["height"] = nw, nh
+            self.root.geometry(f"{nw}x{nh}+{x0}+{y0}")
+            if self._last is not None:
+                self._redraw(*self._last)
+            return
         if self._drag_offset is None:
             return
         x = event.x_root - self._drag_offset[0]
@@ -152,6 +194,14 @@ class BarWindow:
     def _drag_end(self, event: tk.Event) -> None:
         origin = self._drag_origin
         self._drag_origin = None
+        if self._resizing is not None:
+            self._resizing = None
+            w = self._win_cfg()
+            config.save_local(
+                {"window": {"width": int(w["width"]), "height": int(w["height"])}}
+            )
+            log.debug("saved size %sx%s", w["width"], w["height"])
+            return
         if self._drag_offset is not None:
             self._drag_offset = None
             x, y = self.root.winfo_x(), self.root.winfo_y()
@@ -164,6 +214,117 @@ class BarWindow:
         ) >= _CLICK_TOLERANCE_PX
         if not moved:
             self._cycle_display_mode()
+
+    # ------------------------------------------------------------- tooltip
+    def _motion(self, event: tk.Event) -> None:
+        """Update resize cursor + reschedule the hover tooltip."""
+        if self._drag_origin is None and not self._resizing:
+            mode = self._resize_mode(event)
+            cursor = {"we": "size_we", "ns": "size_ns", "se": "size_nw_se"}.get(
+                mode, ""
+            )
+            self.canvas.configure(cursor=cursor)
+        x, y = event.x_root, event.y_root
+        self._cancel_tooltip_timer()
+        self._tooltip_after = self.root.after(
+            _TOOLTIP_DELAY_MS, lambda: self._show_tooltip(x, y)
+        )
+
+    def _leave(self, _event: tk.Event) -> None:
+        self.canvas.configure(cursor="")
+        self._cancel_tooltip_timer()
+        self._hide_tooltip()
+
+    def _cancel_tooltip_timer(self) -> None:
+        if self._tooltip_after is not None:
+            try:
+                self.root.after_cancel(self._tooltip_after)
+            except tk.TclError:
+                pass
+            self._tooltip_after = None
+
+    def _tooltip_text(self) -> str:
+        status, details, est = self._last if self._last else (
+            battery.read_status(**self._threshold_args()),
+            battery.read_power_details(),
+            None,
+        )
+        fields = battery.render_fields(
+            status,
+            est_seconds=est,
+            details=details,
+            estimated=self._estimator.source in ("slope", "learned"),
+            static=self._static,
+            machine=self._machine.product_name,
+            bhm=self._hp_bhm(),
+        )
+        lines: list[str] = []
+        if self._machine.product_name:
+            lines.append(self._machine.product_name)
+        head = f"{fields['percent']}% · {fields['state_text']}"
+        if fields["time"] not in ("", "—"):
+            head += f" · {fields['time']} remaining"
+        lines.append(head)
+        live = [p for p in (fields["capacity"], fields["rate"]) if p]
+        if live:
+            lines.append(" · ".join(live))
+        if self._static is not None:
+            stat = []
+            if self._static.design_mwh:
+                stat.append(f"Design {self._static.design_mwh / 1000:.1f} Wh")
+            if self._static.full_charge_mwh:
+                stat.append(f"Full {self._static.full_charge_mwh / 1000:.1f} Wh")
+            if self._static.wear_percent is not None:
+                stat.append(f"Wear {self._static.wear_percent:.1f} %")
+            if self._static.cycle_count:
+                stat.append(f"{self._static.cycle_count} cycles")
+            if self._static.voltage_mv:
+                stat.append(f"{self._static.voltage_mv / 1000:.1f} V")
+            if stat:
+                lines.append(" · ".join(stat))
+        bhm = self._hp_bhm()
+        if bhm:
+            lines.append(f"BIOS battery mode: {bhm}")
+        source = {
+            "rate": "hardware fuel-gauge rate",
+            "slope": "session average",
+            "learned": "learned profile",
+            "driver": "driver estimate",
+            "windows": "Windows estimate",
+        }.get(self._estimator.source or "")
+        if source:
+            lines.append(f"Estimate: {source} (soft-min {self._estimator.soft_min * 100:.0f} %)")
+        return "\n".join(lines)
+
+    def _show_tooltip(self, x_root: int, y_root: int) -> None:
+        self._hide_tooltip()
+        top = tk.Toplevel(self.root)
+        top.overrideredirect(True)
+        top.attributes("-topmost", True)
+        frame = tk.Frame(top, bg="#ffffe1", highlightthickness=1,
+                         highlightbackground="#7f7f7f")
+        frame.pack()
+        tk.Label(
+            frame, text=self._tooltip_text(), justify="left",
+            bg="#ffffe1", fg="#000000",
+            font=("Segoe UI", 9), padx=8, pady=6,
+        ).pack()
+        top.update_idletasks()
+        x = x_root + 14
+        y = y_root + 18
+        # keep the tooltip on screen
+        x = min(x, top.winfo_screenwidth() - top.winfo_reqwidth() - 8)
+        y = min(y, top.winfo_screenheight() - top.winfo_reqheight() - 8)
+        top.geometry(f"+{x}+{y}")
+        self._tooltip = top
+
+    def _hide_tooltip(self) -> None:
+        if self._tooltip is not None:
+            try:
+                self._tooltip.destroy()
+            except tk.TclError:
+                pass
+            self._tooltip = None
 
     def _cycle_display_mode(self) -> None:
         w = self._win_cfg()
@@ -179,6 +340,8 @@ class BarWindow:
     def _show_menu(self, event: tk.Event) -> None:
         if self._win_cfg()["click_through"]:
             return
+        self._cancel_tooltip_timer()
+        self._hide_tooltip()
         self.menu.tk_popup(event.x_root, event.y_root)
 
     def _build_menu(self) -> None:
@@ -213,6 +376,11 @@ class BarWindow:
             command=self._toggle_lock,
         )
         menu.add_separator()
+        menu.add_command(
+            label=f"Reset size ({config.DEFAULT_SETTINGS['window']['width']}×"
+                  f"{config.DEFAULT_SETTINGS['window']['height']})",
+            command=self._reset_size,
+        )
         menu.add_command(label="Reload settings", command=self.reload_settings)
         menu.add_command(label="Exit  (Ctrl+Alt+Q)", command=self.root.destroy)
         self.menu = menu
@@ -231,6 +399,16 @@ class BarWindow:
 
     def _toggle_lock(self) -> None:
         config.save_local({"window": {"lock_position": self._var_lock.get()}})
+
+    def _reset_size(self) -> None:
+        w = self._win_cfg()
+        d = config.DEFAULT_SETTINGS["window"]
+        w["width"], w["height"] = int(d["width"]), int(d["height"])
+        config.save_local({"window": {"width": w["width"], "height": w["height"]}})
+        x, y = self.root.winfo_x(), self.root.winfo_y()
+        self.root.geometry(f"{w['width']}x{w['height']}+{x}+{y}")
+        if self._last is not None:
+            self._redraw(*self._last)
 
     def _hp_bhm(self) -> str | None:
         if not self._machine.is_hp:

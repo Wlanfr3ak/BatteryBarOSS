@@ -5,6 +5,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.5.0] - 2026-10-03
+
+### Added
+
+- **Hover tooltip with full battery details** (FR-21, user request):
+  resting the pointer on the bar for ~400 ms shows a Toplevel tooltip
+  with machine name, percent/state/remaining time, live Wh + drain
+  rate, design/full capacity, wear %, cycle count, voltage, HP BIOS
+  battery mode (when the elevated tool has cached it) and the current
+  estimate source incl. soft-min level. Hidden on leave, drag and
+  context menu.
+- **Resizable bar via edge drag** (user request): the right edge
+  resizes width, the bottom edge height, the corner both (mouse
+  cursor changes to the matching resize cursor in an 8 px grip zone).
+  Clamped to 140–1200 × 18–160 px; the size is persisted to
+  `settings.local.json` on release. A click inside the grip zone does
+  not cycle the display mode.
+- **"Reset size" menu entry**: restores the default 220×28 size from
+  the context menu.
+
 ## [0.4.2] - 2026-10-03
 
 ### Fixed

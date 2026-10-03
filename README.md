@@ -15,7 +15,7 @@ Conky/BGInfo-style desktop info widget.
 
 ---
 
-## Features (v0.4.0)
+## Features (v0.5.0)
 
 - Floating, frameless, transparent status bar (always-on-top)
 - Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
@@ -32,6 +32,10 @@ Conky/BGInfo-style desktop info widget.
   `tools/read_bios_battery_mode.bat` reads the actual BIOS setting via
   HP's WMI interface (needs admin once, UAC prompt) and the bar shows
   it in health mode as `BHM: <mode>`
+- **Hover tooltip**: full battery details (machine, capacities, wear,
+  cycles, voltage, estimate source) after ~400 ms on the bar
+- **Resizable**: drag the right/bottom edge or the corner; the size is
+  remembered, "Reset size" restores the default
 - Color-coded fill per state (configurable)
 - Freely draggable – position is remembered
 - Context menu (right click): always-on-top, click-through mode,
@@ -122,8 +126,11 @@ everything simply stays empty.
 
 - **Left-click + drag**: move the bar (position is saved to
   `settings.local.json` on release)
+- **Drag the right/bottom edge or corner**: resize the bar (size is
+  saved; "Reset size" in the menu restores the default)
 - **Left-click (without dragging)**: cycle the display
   `default → time → percent → rate → capacity → health`
+- **Hover**: tooltip with all battery details
 - **Right-click**: context menu
 - **Warning toast**: appears bottom-right when the low/critical threshold is
   crossed (once per event)

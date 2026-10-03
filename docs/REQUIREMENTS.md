@@ -85,7 +85,8 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 |---|---|
 | FR-19 | Optional single-EXE build via PyInstaller (dev tool only, no runtime dep) |
 | FR-20 | Rounded corners / icons via PNG assets with alpha (chroma alternative) |
-| FR-21 | Tooltip with details (capacity mWh, health, voltage) |
+| FR-21 | Tooltip with details (capacity mWh, health, voltage) | ✅ v0.5.0 — hover tooltip with all details incl. estimate source |
+| FR-25 | Resizable bar (edge drag) | ✅ v0.5.0 — right/bottom edge + corner grips, persisted size, "Reset size" menu entry |
 | FR-22 | Mini history graph (discharge curve) in a popup |
 | FR-23 | UI translations (de/en) – English is the default since v0.2.0 |
 | FR-24 | Settings dialog (GUI instead of JSON editing) |

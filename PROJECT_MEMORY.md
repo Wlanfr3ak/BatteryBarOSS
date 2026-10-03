@@ -84,9 +84,11 @@ docs/            # REQUIREMENTS, DEPENDENCIES, RESEARCH, BATTERY_ESTIMATION
 
 Data flow: `battery.read_status()` + `read_power_details()` ->
 `TimeEstimator.remaining_seconds()` -> format fields
-(`{percent} {time} {rate} {capacity} {state*}`, `~` prefix when
-slope-estimated) -> canvas redraw in the `after()` interval.
-Left-click (< 6 px) cycles `window.display_mode`; drag moves the bar.
+(`{percent} {time} {rate} {capacity} {health} {wear} {cycles} {state*}`,
+`~` prefix when slope/learned-estimated) -> canvas redraw in the
+`after()` interval. Left-click (< 6 px) cycles `window.display_mode`;
+drag moves the bar; edge drag (8 px grip) resizes it; ~400 ms hover
+shows the details tooltip (FR-21).
 
 ## Open items / roadmap (details: docs/REQUIREMENTS.md section 8)
 
