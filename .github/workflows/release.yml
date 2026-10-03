@@ -49,6 +49,15 @@ jobs:
         shell: pwsh
         run: Copy-Item dist\BatteryBarOSS.exe "BatteryBarOSS-${{ steps.ver.outputs.version }}.exe"
 
+      - name: Build SHA256SUMS.txt (updater integrity anchor)
+        shell: pwsh
+        run: >-
+          Get-FileHash "BatteryBarOSS-${{ steps.ver.outputs.version }}.exe",
+          "installer\Output\BatteryBarOSS-Setup-${{ steps.ver.outputs.version }}.exe"
+          -Algorithm SHA256 |
+          ForEach-Object { "{0}  {1}" -f $_.Hash.ToLower(), (Split-Path $_.Path -Leaf) } |
+          Set-Content -Encoding ascii SHA256SUMS.txt
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,3 +68,4 @@ jobs:
           --notes-file release-notes.md
           "installer\Output\BatteryBarOSS-Setup-${{ steps.ver.outputs.version }}.exe"
           "BatteryBarOSS-${{ steps.ver.outputs.version }}.exe"
+          SHA256SUMS.txt

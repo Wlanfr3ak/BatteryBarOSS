@@ -69,6 +69,11 @@ DEFAULT_SETTINGS: dict = {
         "fill_nobattery": "#555555",
     },
     "warnings": {"enabled": True, "beep": False, "toast_seconds": 5},
+    "updates": {
+        "enabled": None,  # None = ask once on first start
+        "check_interval_hours": 24,
+        "last_check": None,
+    },
     "update_interval_ms": 1000,
     "logging": {"enabled": True, "level": "INFO"},
 }

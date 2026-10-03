@@ -60,6 +60,11 @@ there with source and license. Their raw files live locally under
   unsigned PyInstaller one-file exes may trigger SmartScreen/AV
   warnings (cosmetic, no signing cert yet); x64 build only (ARM64 via
   emulation); ~14 MB unpacked to `%TEMP%` per start.
+- **Code signing (planned)**: the project intends to sign releases via
+  **SignPath Foundation** (free code signing for qualifying open-source
+  projects; cloud HSM + GitHub Actions integration). Until then the
+  updater's SHA-256 check proves integrity against the published
+  release assets, not publisher authenticity.
 - Windows 10/11 (developed on Windows 11 24H2)
 - Python 3.11+ required for the type-annotation style used;
   tested with 3.14

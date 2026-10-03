@@ -21,7 +21,7 @@ battery indicator.*
 
 ---
 
-## Features (v0.6.0)
+## Features (v0.7.0)
 
 - Floating, frameless, transparent status bar (always-on-top)
 - Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
@@ -46,6 +46,10 @@ battery indicator.*
   Run key, no admin)
 - **Windows installer**: `setup.exe` via Inno Setup — no Python needed,
   optional autostart + uninstaller (see below)
+- **Self-update** (installed/portable builds): asks once on first
+  start, then checks GitHub Releases over enforced HTTPS; downloads
+  are verified against the release's `SHA256SUMS.txt` and applied in
+  one step — settings are kept. "Check for updates now" in the menu
 - Color-coded fill per state (configurable)
 - Freely draggable – position is remembered
 - Context menu (right click): always-on-top, click-through mode,

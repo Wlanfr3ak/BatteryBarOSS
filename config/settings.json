@@ -44,6 +44,11 @@
     "beep": false,
     "toast_seconds": 5
   },
+  "updates": {
+    "enabled": null,
+    "check_interval_hours": 24,
+    "last_check": null
+  },
   "update_interval_ms": 1000,
   "logging": {
     "enabled": true,

@@ -5,6 +5,43 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.7.0] - 2026-10-03
+
+### Added
+
+- **Self-updater (frozen builds only)** — new module `updater.py`:
+  - First-start consent dialog asks once whether automatic update
+    checks are allowed; the answer is persisted as
+    `updates.enabled` in `settings.local.json` and honored forever
+    (declined = never checked). Manual checks stay available via
+    context-menu "Check for updates now" regardless.
+  - Checks `api.github.com/.../releases/latest` over enforced HTTPS
+    (`https:` scheme whitelist, system-CA TLS verification via
+    `ssl.create_default_context()`), at most every
+    `updates.check_interval_hours` (default 24 h, timestamped via
+    `updates.last_check` — only successful checks advance it).
+  - New release asset `SHA256SUMS.txt` (CI-generated) pins the
+    expected digest; a downloaded binary is **discarded** unless its
+    SHA-256 matches the entry for the exact asset name
+    `BatteryBarOSS-<version>.exe`. Hash = integrity/corruption proof;
+    authenticity via code signing is planned (SignPath, see below).
+  - One-step apply: helper `.bat` in `%TEMP%` waits for the process to
+    exit, moves the verified exe over `sys.executable` and relaunches.
+    Config/stats in `%LOCALAPPDATA%` are untouched → settings survive.
+  - New context-menu item "Check for updates now" (frozen builds);
+    `updater.available()` is False for source runs — dev flow stays
+    `git pull`. `--selftest` reports `updater_available` +
+    `updates_enabled`.
+- Config block `updates` (`enabled`, `check_interval_hours`,
+  `last_check`) in `config/settings.json` + `DEFAULT_SETTINGS`.
+- `docs/DEPENDENCIES.md` §6: SignPath Foundation noted as the planned
+  code-signing path (free for qualifying OSS projects).
+
+### Changed
+
+- `release.yml`: CI now generates `SHA256SUMS.txt` (sha256sum-format)
+  for both release assets and attaches it — required by the updater.
+
 ## [0.6.2] - 2026-10-03
 
 ### Changed

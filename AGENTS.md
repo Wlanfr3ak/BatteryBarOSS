@@ -40,6 +40,8 @@ At the start of every session, read this file and `PROJECT_MEMORY.md` first.
   (`git push --tags` or `git push origin v<version>`). Pushing the tag
   triggers `.github/workflows/release.yml`, which builds the artifacts
   and publishes a GitHub Release with the changelog section as notes.
+  The release **must** also contain `SHA256SUMS.txt` (CI-generated) —
+  the self-updater refuses to install without it.
 - Commit messages are written in **English**.
 - Never commit secrets (see section 5). Never commit research raw files (section 6).
 - No `--force` push, no history rewriting, no changes to git config.

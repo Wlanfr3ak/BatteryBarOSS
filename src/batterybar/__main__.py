@@ -53,7 +53,7 @@ def _setup_logging(settings: dict) -> None:
 
 def _selftest() -> int:
     """Validate config + battery read without opening the GUI."""
-    from . import battery, sysinfo
+    from . import battery, sysinfo, updater
 
     settings = config.load_settings()
     t = settings["thresholds"]
@@ -97,6 +97,8 @@ def _selftest() -> int:
             "is_hp": machine.is_hp,
         },
         "hp_bios_cache": bhm,
+        "updater_available": updater.available(),
+        "updates_enabled": settings.get("updates", {}).get("enabled"),
         "fields": battery.render_fields(
             status,
             details=details,

@@ -63,7 +63,13 @@ uptime, ...).
   `git tag vX.Y.Z && git push --tags` → Windows runner builds exe +
   installer → GitHub Release with setup, portable exe and the extracted
   CHANGELOG section as notes. Cutting a release = version bump commit +
-  tag + push.
+  tag + push. Since v0.7.0 the release also carries `SHA256SUMS.txt`
+  (updater integrity anchor — removing it breaks auto-update).
+- **Code signing**: planned via **SignPath Foundation** (free for
+  qualifying OSS). Decided 2026-10-03; Azure Artifact Signing rejected
+  (individuals: US/CA only), EV certs pointless since 2024
+  (no SmartScreen advantage). Open task: SignPath application +
+  `release.yml` signing step.
 - GitHub account: **Wlanfr3ak**, git author `Wlanfr3ak <6292882+Wlanfr3ak@users.noreply.github.com>`
 - SSH auth: key `~/.ssh/fabian` (ed25519, registered on GitHub 2026-10-03);
   `~/.ssh/config` contains `Host github.com` with
@@ -83,6 +89,8 @@ src/batterybar/
   sysinfo.py     # machine info via winreg (HKLM SystemInformation);
                  # HP BHM cache reader (config/hp_bios.local.json)
   autostart.py   # HKCU Run key enable/disable/is_enabled (winreg)
+  updater.py     # self-update via GitHub Releases (frozen only): https-only,
+                 # SHA256SUMS-verified download, %TEMP% helper-bat replace+relaunch
   estimate.py    # TimeEstimator: rate -> slope -> learned -> driver -> windows, soft-min level
   config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
   bar_window.py  # Tkinter floating bar: canvas, drag & drop, click-to-cycle display,

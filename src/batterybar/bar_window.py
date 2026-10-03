@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import threading
 import time
 import tkinter as tk
+from tkinter import messagebox
 import winsound
 
 from . import (
@@ -15,6 +17,7 @@ from . import (
     config,
     estimate,
     sysinfo,
+    updater,
 )
 
 log = logging.getLogger(__name__)
@@ -87,6 +90,7 @@ class BarWindow:
                 ),
             )
 
+        self.root.after(2000, self._updates_init)
         self.root.after(0, self._tick)
         self.root.after(150, self._hotkey_poll)
 
@@ -395,6 +399,13 @@ class BarWindow:
                   f"{config.DEFAULT_SETTINGS['window']['height']})",
             command=self._reset_size,
         )
+        if updater.available():
+            menu.add_command(
+                label="Check for updates now",
+                command=lambda: self._schedule_update_check(
+                    force=True, manual=True
+                ),
+            )
         menu.add_command(label="Reload settings", command=self.reload_settings)
         menu.add_command(label="Exit  (Ctrl+Alt+Q)", command=self.root.destroy)
         self.menu = menu
@@ -440,6 +451,111 @@ class BarWindow:
             return None
         cache = sysinfo.read_hp_bios_cache()
         return str(cache["mode"]) if cache else None
+
+    # ------------------------------------------------------------- updater
+    def _updates_init(self) -> None:
+        """First-start consent question (once), then scheduled checks."""
+        if not updater.available():
+            return
+        cfg = self.settings["updates"]
+        if cfg.get("enabled") is None:
+            ans = messagebox.askyesno(
+                __app_name__,
+                "Allow automatic update checks?\n\n"
+                "The app will occasionally check github.com over HTTPS "
+                "for new releases and can update itself in one step.\n"
+                "Settings and stats are kept. You can change this later "
+                'via "updates.enabled" in settings.local.json.',
+            )
+            config.save_local({"updates": {"enabled": bool(ans)}})
+            cfg["enabled"] = bool(ans)
+            log.info("update checks %s", "enabled" if ans else "declined")
+        self._schedule_update_check(force=False, manual=False)
+
+    def _schedule_update_check(self, force: bool, manual: bool = False) -> None:
+        """Kick off a background check when due; `force` ignores the
+        interval and the enabled flag (explicit menu request)."""
+        if not updater.available():
+            return
+        cfg = self.settings["updates"]
+        if not force and not cfg.get("enabled"):
+            return
+        interval_s = float(cfg.get("check_interval_hours", 24)) * 3600
+        last = float(cfg.get("last_check") or 0)
+        if not force and time.time() - last < interval_s:
+            self._schedule_next_update_probe()
+            return
+        threading.Thread(
+            target=self._update_check_worker, args=(manual,), daemon=True
+        ).start()
+
+    def _update_check_worker(self, manual: bool) -> None:
+        try:
+            info = updater.check_for_update()
+            ok = True
+        except Exception:
+            log.exception("update check failed")
+            info, ok = None, False
+        self.root.after(
+            0, lambda: self._update_check_done(info, ok, manual)
+        )
+
+    def _update_check_done(
+        self, info: updater.UpdateInfo | None, ok: bool, manual: bool
+    ) -> None:
+        if ok:
+            stamp = time.time()
+            config.save_local({"updates": {"last_check": stamp}})
+            self.settings["updates"]["last_check"] = stamp
+        if manual and ok and info is None:
+            self._toast(f"{__app_name__} is up to date (v{__version__})")
+        if info is not None:
+            log.info("update available: v%s", info.version)
+            if messagebox.askyesno(
+                __app_name__,
+                f"Update v{info.version} is available "
+                f"(installed: v{__version__}).\n\n"
+                "Download and install now? The app restarts; "
+                "settings are kept.",
+            ):
+                self._start_download(info)
+        self._schedule_next_update_probe()
+
+    def _schedule_next_update_probe(self) -> None:
+        if self.settings["updates"].get("enabled"):
+            self.root.after(
+                3600_000,
+                lambda: self._schedule_update_check(force=False),
+            )
+
+    def _start_download(self, info: updater.UpdateInfo) -> None:
+        self._toast(f"Downloading v{info.version} …")
+        threading.Thread(
+            target=self._download_worker, args=(info,), daemon=True
+        ).start()
+
+    def _download_worker(self, info: updater.UpdateInfo) -> None:
+        try:
+            path = updater.download_verified(info)
+        except updater.UpdateError as exc:
+            log.warning("update download refused: %s", exc)
+            self.root.after(0, lambda: self._toast(f"Update failed: {exc}"))
+            return
+        except Exception:
+            log.exception("update download failed")
+            self.root.after(0, lambda: self._toast("Update download failed"))
+            return
+        self.root.after(0, lambda: self._apply_update(path))
+
+    def _apply_update(self, path) -> None:
+        try:
+            updater.apply_update(path)
+        except Exception:
+            log.exception("apply update failed")
+            self._toast("Could not start the update helper")
+            return
+        self.root.destroy()
+
 
     def reload_settings(self) -> None:
         self.settings = config.load_settings()
