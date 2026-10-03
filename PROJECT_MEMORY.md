@@ -105,7 +105,9 @@ src/batterybar/
   autostart.py   # HKCU Run key enable/disable/is_enabled (winreg)
   updater.py     # self-update via GitHub Releases (frozen only): https-only,
                  # SHA256SUMS-verified download, %TEMP% helper-bat replace+relaunch
-  estimate.py    # TimeEstimator: rate -> slope -> learned -> driver -> windows, soft-min level
+  estimate.py    # TimeEstimator: rate -> slope -> learned -> driver -> windows, soft-min level;
+                 # DrainModel: online OLS load%->drain_mW regression (persists in stats.local.json)
+  sysload.py     # CpuMonitor (GetSystemTimes) + LoadTracker 1/5/15-min averages (v0.9.0)
   config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
   bar_window.py  # Tkinter floating bar: canvas, drag & drop, click-to-cycle display,
                  # context menu, click-through, hotkeys, warning toast, format templates;

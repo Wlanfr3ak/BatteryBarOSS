@@ -31,7 +31,13 @@ battery indicator.*
   within seconds after unplugging, counting down to a configurable
   soft-minimum reserve instead of 0 % (see `docs/BATTERY_ESTIMATION.md`)
 - **Click-to-cycle display**: left-click on the bar toggles
-  `default → time → percent → rate → capacity → health` (BatteryBar-style)
+  `default → time → percent → rate → capacity → health → load`
+  (BatteryBar-style)
+- **Load view**: a two-row display with 1/5/15-minute CPU load
+  averages (Windows' stand-in for the Unix load average, sampled via
+  `GetSystemTimes`) — and underneath the remaining runtime estimated
+  *for each load level*, powered by a continuously learning
+  load→drain regression (`DrainModel`, persisted in `stats.local.json`)
 - **Battery health view**: real wear %, cycle count and true
   full-charge capacity from `root\wmi` battery classes — the values
   that `Win32_Battery` hides
@@ -137,7 +143,7 @@ Key options (excerpt, full reference in `settings.json`):
 |---|---|---|
 | `window.width` / `window.height` | `220` / `28` | Bar size (px); also resizable by edge drag |
 | `window.format` | `{state_icon} {percent}% · {time}` | Display template. Placeholders: `{percent}`, `{time}`, `{rate}`, `{capacity}`, `{state}`, `{state_text}`, `{state_icon}`, `{health}`, `{wear}`, `{cycles}`, `{design_wh}`, `{full_wh}`, `{machine}`, `{bhm}` |
-| `window.display_mode` | `default` | `default` uses `format`; `time`/`percent`/`rate`/`capacity`/`health` show a single field — cycled by left-click |
+| `window.display_mode` | `default` | `default` uses `format`; `time`/`percent`/`rate`/`capacity`/`health` show a single field, `load` shows the two-row load/runtime view — cycled by left-click |
 | `estimation.soft_min_percent` | `5.0` | Reserve floor: time counts down to this %, not to real 0 % |
 | `window.corner` / `offset_x` / `offset_y` | `top-right` / `20` / `20` | Start position (when no saved position) |
 | `thresholds.low` / `thresholds.critical` | `30` / `15` | Thresholds for warning colors + warnings (%) |
@@ -169,7 +175,7 @@ everything simply stays empty.
 - **Drag the right/bottom edge or corner**: resize the bar (size is
   saved; "Reset size" in the menu restores the default)
 - **Left-click (without dragging)**: cycle the display
-  `default → time → percent → rate → capacity → health`
+  `default → time → percent → rate → capacity → health → load`
 - **Hover**: tooltip with all battery details
 - **Right-click**: context menu
 - **Warning toast**: appears bottom-right when the low/critical threshold is

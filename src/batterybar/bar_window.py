@@ -19,6 +19,7 @@ from . import (
     config,
     estimate,
     sysinfo,
+    sysload,
     updater,
 )
 
@@ -26,7 +27,8 @@ log = logging.getLogger(__name__)
 
 CHROMA = "#ff00ff"  # chroma-key color -> fully transparent window background
 _CLICK_TOLERANCE_PX = 6
-_DISPLAY_MODES = ("default", "time", "percent", "rate", "capacity", "health")
+_DISPLAY_MODES = ("default", "time", "percent", "rate", "capacity", "health",
+                  "load")
 _RESIZE_MARGIN = 8  # px from right/bottom edge that acts as resize grip
 _MIN_W, _MIN_H = 140, 18
 _MAX_W, _MAX_H = 1200, 160
@@ -36,6 +38,8 @@ _TOOLTIP_HIDE_GRACE_MS = 250  # lets the pointer travel onto the tooltip
 _TOOLTIP_ANIM_FRAMES = 16
 _TOOLTIP_ANIM_FRAME_MS = 70
 _ANIM_POOL = "!<>-_\\/[]{}=+*^?#%&@"
+_PAIR_INTERVAL_S = 60.0  # (load, drain) model sample cadence while discharging
+_MIN_PAIR_DROP_MWH = 20.0  # fuel-gauge noise floor for a pair sample
 
 # 5-row block font for the version animation ('#' -> drawn as block char)
 _ASCII_FONT: dict[str, tuple[str, ...]] = {
@@ -82,6 +86,9 @@ class BarWindow:
         self._machine = sysinfo.read_machine_info()
         self._static: battery.BatteryStaticInfo | None = None
         self._static_at = 0.0
+        self._cpu = sysload.CpuMonitor()
+        self._load = sysload.LoadTracker()
+        self._pair_start: tuple[float, float] | None = None
         self._resizing: str | None = None  # "we" | "ns" | "se" while edge-dragging
         self._tooltip: tk.Toplevel | None = None
         self._tooltip_after: str | None = None
@@ -362,6 +369,10 @@ class BarWindow:
         }.get(self._estimator.source or "")
         if source:
             lines.append(f"Estimate: {source} (soft-min {self._estimator.soft_min * 100:.0f} %)")
+        avgs = self._load.averages()
+        if any(a is not None for a in avgs):
+            lines.append("Load 1/5/15m: " + " ".join(
+                "-" if a is None else f"{a:.0f}%" for a in avgs))
         return "\n".join(lines)
 
     def _show_tooltip(self, x_root: int, y_root: int) -> None:
@@ -905,6 +916,8 @@ class BarWindow:
             status = battery.read_status(**self._threshold_args())
             details = battery.read_power_details()
             est = self._estimator.remaining_seconds(status, details)
+            self._load.add(self._cpu.sample())
+            self._drain_pair_sample(details)
             self._last = (status, details, est)
             if self._static is None or time.monotonic() - self._static_at > 3600:
                 self._static = battery.read_static_info()
@@ -939,11 +952,81 @@ class BarWindow:
                 pad, pad, pad + fill_w, height - pad,
                 fill=col[battery.fill_color_key(status.state)], outline="",
             )
+        font = (disp["font_family"], int(disp["font_size"]), disp["font_weight"])
+        if str(w.get("display_mode")) == "load":
+            self._draw_load_text(c, width, height, pad, col["text"], font, details)
+        else:
+            c.create_text(
+                width / 2, height / 2,
+                text=self._format_text(status, details, est_seconds),
+                fill=col["text"], font=font,
+            )
+
+    def _draw_load_text(
+        self, c: tk.Canvas, width: int, height: int, pad: int,
+        color: str, font: tuple, details: battery.PowerDetails | None,
+    ) -> None:
+        """Two-row load view: 1/5/15-min CPU load + remaining time at
+        each load level, learned by DrainModel."""
+        line1, line2 = self._load_lines(details)
+        fs = min(font[1], max(7, (height - 2 * pad) // 3))
+        f = (font[0], fs, font[2])
+        c.create_text(width / 2, pad + fs * 0.9, text=line1, fill=color, font=f)
         c.create_text(
-            width / 2, height / 2, text=self._format_text(status, details, est_seconds),
-            fill=col["text"],
-            font=(disp["font_family"], int(disp["font_size"]), disp["font_weight"]),
+            width / 2, height - pad - fs * 0.9, text=line2, fill=color, font=f
         )
+
+    def _load_lines(
+        self, details: battery.PowerDetails | None
+    ) -> tuple[str, str]:
+        avgs = self._load.averages()
+        line1 = "load 1/5/15m  " + "  ".join(
+            "-" if a is None else f"{a:.0f}%" for a in avgs
+        )
+        ests = [self._estimate_at_load(a, details) for a in avgs]
+        line2 = "batt @ load   " + "  ".join(
+            "-" if e is None else f"~{battery.format_duration(e).replace(' h', '')}"
+            for e in ests
+        )
+        return line1, line2
+
+    def _estimate_at_load(
+        self, load_pct: float | None, details: battery.PowerDetails | None
+    ) -> int | None:
+        if load_pct is None or details is None or details.max_mwh <= 0:
+            return None
+        usable = details.remaining_mwh - self._estimator.soft_min * details.max_mwh
+        if usable <= 0:
+            return 0
+        mw = self._estimator.predict_drain(load_pct)
+        if mw is None:
+            base = self._estimator.session_mw
+            if not base or base <= 0:
+                return None
+            lavg = self._load.avg(sysload.LOAD_WINDOWS_S[-1]) or load_pct
+            mw = base * max(load_pct, 1.0) / max(lavg, 1.0)  # proportional fallback
+        return max(0, int(usable / max(mw, estimate._MIN_DRAIN_MW) * 3600))
+
+    def _drain_pair_sample(self, details: battery.PowerDetails | None) -> None:
+        """Feed (mean cpu-load %, drain mW) pairs into DrainModel while
+        discharging - one per ~60 s window with a real mWh drop."""
+        if details is None or details.max_mwh <= 0 or not details.discharging:
+            self._pair_start = None
+            return
+        now = time.monotonic()
+        if self._pair_start is None:
+            self._pair_start = (now, float(details.remaining_mwh))
+            return
+        t0, mwh0 = self._pair_start
+        dt = now - t0
+        if dt < _PAIR_INTERVAL_S:
+            return
+        drop = mwh0 - details.remaining_mwh
+        self._pair_start = (now, float(details.remaining_mwh))
+        load = self._load.avg(dt)
+        if load is None or drop < _MIN_PAIR_DROP_MWH:
+            return
+        self._estimator.add_drain_sample(load, drop / dt * 3600.0)
 
     def _format_text(
         self,

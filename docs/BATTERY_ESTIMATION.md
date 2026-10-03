@@ -120,3 +120,39 @@ Persisted to `settings.local.json` (`window.display_mode`).
 
 Full statistical discharge-profile learning (BatteryBar's mode 1)
 remains open as FR-12 for a later release — requires persisted history.
+
+## 5. Load-dependent runtime (v0.9.0)
+
+The "load" display mode goes one step further: instead of one runtime
+estimate it shows **three** — the runtime if the device kept running at
+the 1-min, 5-min or 15-min average CPU load:
+
+```
+load 1/5/15m  42%  28%  15%
+batt @ load   ~0:55  ~1:40  ~3:05
+```
+
+Windows has no Unix load average (the runnable-queue length is not
+exposed), so `sysload.py` samples CPU utilisation via `GetSystemTimes`
+deltas every UI tick (~1 Hz) and keeps a rolling 15-min history
+(`LoadTracker`).
+
+To turn a load level into a runtime we need `P(load)`: `DrainModel`
+(estimate.py) learns `drain_mW = a + b·load%` via **online OLS
+regression** on (mean CPU load, fuel-gauge drain) pairs collected every
+~60 s while discharging. The sufficient statistics (n, Σx, Σy, Σxy,
+Σx²) persist inside `stats.local.json`, so the model keeps improving
+across restarts — like the learned-rate EWMA, but per load level.
+
+Fallback chain per window estimate:
+
+1. `DrainModel.predict(load)` — once ≥8 samples exist **and** the
+   observed load varied ≥ ~5 pp (otherwise the slope is unidentifiable).
+2. Proportional scaling from the session-average drain:
+   `P = P_session · load / load_avg` — directionally correct until the
+   model has data.
+3. `—` when nothing is known yet (e.g. on AC, or no session rate).
+
+Guards: predictions clamp to a ≥ 0.5 W floor and a non-negative slope
+(drain must not decrease with load); pair samples need a real ≥20 mWh
+fuel-gauge drop to avoid feeding quantization noise into the fit.

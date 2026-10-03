@@ -5,6 +5,31 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.9.0] - 2026-10-03
+
+### Added
+
+- Load view ("load" display mode, added to the click cycle): a two-row
+  display showing Windows-style load averages and the battery runtime
+  estimated *at each load level*:
+  `load 1/5/15m  42%  28%  15%` /
+  `batt @ load   ~0:55  ~1:40  ~3:05`. Windows has no Unix load
+  average, so CPU utilisation is sampled via `GetSystemTimes` deltas
+  (new module `sysload.py`: `CpuMonitor` + `LoadTracker` ring buffer
+  over the 1/5/15-min windows). The runtime estimate per window uses a
+  learned power model — see below.
+- `DrainModel` in `estimate.py`: an online OLS regression learning
+  `drain_mW = a + b · load%` from (mean CPU load, measured fuel-gauge
+  drain) pairs sampled every ~60 s while discharging. Sufficient
+  statistics (n, Σx, Σy, Σxy, Σx²) persist inside `stats.local.json`,
+  so the load→drain curve keeps improving across restarts — the
+  BatteryBar-style "learns your machine" idea, applied per load level.
+  Until the model can fit (≥8 samples with ≥5pp load spread), the
+  estimate falls back to proportional scaling from the session-average
+  drain. Predictions are clamped to a ≥0.5 W floor and a non-negative
+  slope (drain must not fall with rising load).
+- Tooltip gains a "Load 1/5/15m: x% y% z%" line.
+
 ## [0.8.5] - 2026-10-03
 
 ### Changed

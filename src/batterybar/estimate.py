@@ -35,6 +35,53 @@ _PERSIST_INTERVAL_S = 60.0
 _MIN_SESSION_S = 90.0  # minimum elapsed time before trusting a session rate
 _MIN_DROP_MWH = 30.0  # minimum mWh drop before folding into the learned rate
 _STATS_VERSION = 2  # bump to discard stats trained by older algorithms
+_MIN_MODEL_SAMPLES = 8  # (load, drain) pairs before regression kicks in
+_MIN_LOAD_VAR = 25.0  # min load variance (%^2, ~5pp std) for a usable slope
+_MIN_DRAIN_MW = 500.0  # power floor for predictions
+
+
+class DrainModel:
+    """Learned drain power model P(load%) -> mW via online OLS regression.
+
+    Sufficient statistics are kept incrementally so the model can be
+    persisted inside stats.local.json and improves over weeks of use.
+    """
+
+    def __init__(self, state: dict | None = None) -> None:
+        s = state or {}
+        self.n = int(s.get("n", 0))
+        self.sx = float(s.get("sx", 0.0))
+        self.sy = float(s.get("sy", 0.0))
+        self.sxy = float(s.get("sxy", 0.0))
+        self.sxx = float(s.get("sxx", 0.0))
+
+    def add(self, load_pct: float, drain_mw: float) -> None:
+        if drain_mw <= 0 or load_pct < 0:
+            return
+        self.n += 1
+        self.sx += load_pct
+        self.sy += drain_mw
+        self.sxy += load_pct * drain_mw
+        self.sxx += load_pct * load_pct
+
+    def predict(self, load_pct: float) -> float | None:
+        """Predicted drain in mW at `load_pct`, or None when the model
+        cannot fit yet (too few samples / load never varied)."""
+        if self.n < _MIN_MODEL_SAMPLES:
+            return None
+        denom = self.n * self.sxx - self.sx * self.sx
+        if denom <= 0 or (self.sxx - self.sx * self.sx / self.n) / self.n < _MIN_LOAD_VAR:
+            return None
+        b = (self.n * self.sxy - self.sx * self.sy) / denom
+        a = (self.sy - b * self.sx) / self.n
+        b = max(0.0, b)  # drain must not decrease with load
+        return max(_MIN_DRAIN_MW, a + b * load_pct)
+
+    def state(self) -> dict:
+        return {
+            "n": self.n, "sx": self.sx, "sy": self.sy,
+            "sxy": self.sxy, "sxx": self.sxx,
+        }
 
 
 class TimeEstimator:
@@ -49,33 +96,51 @@ class TimeEstimator:
         self._stats_path = stats_path
         self._session_start: tuple[float, float] | None = None
         self._learned_mw = self._load_rate()
+        self._model = DrainModel(self._load_model_state())
         self._last_persist = 0.0
+        self.session_mw: float | None = None  # last session drain in mW
         self.source: str | None = None
         # "rate" | "slope" | "learned" | "driver" | "windows"
 
     # ------------------------------------------------------------ persistence
     def _load_rate(self) -> float | None:
+        data = self._read_stats()
+        if data is None:
+            return None
+        try:
+            value = float(data.get("avg_drain_mw", 0))
+            return value if value > 0 else None
+        except (ValueError, TypeError):
+            return None
+
+    def _load_model_state(self) -> dict | None:
+        data = self._read_stats()
+        return data.get("drain_model") if data else None
+
+    def _read_stats(self) -> dict | None:
         if not self._stats_path:
             return None
         try:
             data = json.loads(Path(self._stats_path).read_text(encoding="utf-8"))
-            if data.get("version") != _STATS_VERSION:
-                return None  # discard stats trained by older algorithms
-            value = float(data.get("avg_drain_mw", 0))
-            return value if value > 0 else None
-        except (OSError, json.JSONDecodeError, ValueError, TypeError):
+        except (OSError, json.JSONDecodeError):
             return None
+        return data if data.get("version") == _STATS_VERSION else None
 
     def _persist_rate(self, force: bool = False) -> None:
-        if not self._stats_path or self._learned_mw is None:
+        if not self._stats_path:
             return
+        if self._learned_mw is None and self._model.n == 0:
+            return  # nothing learned yet
         now = time.monotonic()
         if not force and now - self._last_persist < _PERSIST_INTERVAL_S:
             return
         self._last_persist = now
         payload = {
             "version": _STATS_VERSION,
-            "avg_drain_mw": round(self._learned_mw, 1),
+            "avg_drain_mw": (
+                round(self._learned_mw, 1) if self._learned_mw else None
+            ),
+            "drain_model": self._model.state(),
             "updated": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         try:
@@ -122,12 +187,10 @@ class TimeEstimator:
         session = self._session_rate(status, details, now)
         if session is not None:
             rate, usable, drop = session
-            if (
-                details is not None
-                and details.max_mwh > 0
-                and drop >= _MIN_DROP_MWH
-            ):
-                self._learn_mw(rate * 3600)  # mWh/s -> mWh/h == mW
+            if details is not None and details.max_mwh > 0:
+                self.session_mw = rate * 3600  # mWh/s -> mW
+                if drop >= _MIN_DROP_MWH:
+                    self._learn_mw(self.session_mw)
             self.source = "slope"
             return max(0, int(usable / rate))
 
@@ -145,6 +208,17 @@ class TimeEstimator:
         # 5) Windows fallback
         self.source = "windows" if status.seconds_remaining is not None else None
         return status.seconds_remaining
+
+    # ------------------------------------------------------ drain model api
+    def add_drain_sample(self, load_pct: float, drain_mw: float) -> None:
+        """Fold a measured (cpu-load%, drain mW) pair into the model."""
+        self._model.add(load_pct, drain_mw)
+        self._persist_rate()
+
+    def predict_drain(self, load_pct: float) -> float | None:
+        """Predicted drain (mW) at the given load %, or None when the
+        model cannot fit yet - caller falls back to proportional scaling."""
+        return self._model.predict(load_pct)
 
     # ---------------------------------------------------------------- helpers
     def _quantity(

@@ -69,7 +69,7 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 
 | ID | Requirement |
 |---|---|
-| FR-11 | Extend provider architecture: more data sources via stdlib (`GetSystemTimes` CPU, `GlobalMemoryStatusEx` RAM, uptime, date/time, IP) – modelled on DesktopInfo/Conky |
+| FR-11 | Extend provider architecture: more data sources via stdlib (`GetSystemTimes` CPU, `GlobalMemoryStatusEx` RAM, uptime, date/time, IP) – modelled on DesktopInfo/Conky — **partially done v0.9.0**: `sysload.py` CPU provider with 1/5/15-min averages + "load" display mode (runtime estimated per load level via learned `DrainModel`); still open: RAM, uptime, IP providers |
 | FR-12 | Own runtime estimate from discharge history (BatteryBar Pro feature); persist history. **Partially done v0.3.0**: rate-based + slope + driver fallback implemented; still open: persisted statistical discharge profile |
 | FR-13 | Battery health: design vs. full-charge capacity, charge rate — **partially done v0.4.0**: design/full capacity, cycle count, serial, wear % via `root\wmi` classes (IOCTL path investigated, not enumerable on dev HW); still open: charge rate, statistics |
 | FR-13a | Vendor BIOS battery-management mode via explicit firmware marker (not inferred from battery values) — **v0.4.0 for HP**: `tools/read_bios_battery_mode.bat` reads `root\hp\instrumentedbios` `HP_BIOSSetting` elevated, caches to `hp_bios.local.json`; shown in `health` mode as `BHM:` |
