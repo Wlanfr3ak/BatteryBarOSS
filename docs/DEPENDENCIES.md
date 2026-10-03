@@ -51,6 +51,15 @@ there with source and license. Their raw files live locally under
 
 ## 6. Compatibility notes
 
+- **Portable/installer EXE (v0.6.0+): zero additional dependencies.**
+  The PyInstaller bundle embeds the interpreter (`python314.dll`),
+  the VC++ runtime (`VCRUNTIME140*.dll`, `ucrtbase.dll`) and
+  tk/Tkinter — no Python, vcredist or pip needed on Windows 10/11 x64.
+  Notes: `powershell.exe` (OS component) is spawned rarely for
+  `root\wmi` battery statics and degrades gracefully if absent;
+  unsigned PyInstaller one-file exes may trigger SmartScreen/AV
+  warnings (cosmetic, no signing cert yet); x64 build only (ARM64 via
+  emulation); ~14 MB unpacked to `%TEMP%` per start.
 - Windows 10/11 (developed on Windows 11 24H2)
 - Python 3.11+ required for the type-annotation style used;
   tested with 3.14

@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.6.2] - 2026-10-03
+
+### Changed
+
+- `docs/DEPENDENCIES.md` §6: documented that the portable/installer
+  EXE is fully self-contained (bundle verified: interpreter, VC++
+  runtime, tk embedded) + honest caveats (rare PowerShell spawn for
+  `root\wmi` statics, unsigned-exe SmartScreen notes, x64-only,
+  `%TEMP%` unpack per start).
+
 ## [0.6.1] - 2026-10-03
 
 ### Added
