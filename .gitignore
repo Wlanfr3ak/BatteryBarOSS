@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# BatteryBar OSS - .gitignore
+# Regeln lt. AGENTS.md:
+#   - Secrets/Keys werden NIEMALS committed (config/secrets.json)
+#   - Recherche-Rohdateien werden NICHT committed (nur Quellen in docs/RESEARCH.md)
+#   - Lokale Benutzer-Overrides werden NICHT committed
+# ---------------------------------------------------------------------------
+
+# --- Secrets & lokale Konfiguration (NIEMALS committen) ---
+config/secrets.json
+config/settings.local.json
+
+# --- Recherche-Rohdateien (Quellen sind in docs/RESEARCH.md dokumentiert) ---
+Recherchen/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- Build-Artefakte (z. B. PyInstaller) ---
+build/
+dist/
+*.spec
+
+# --- Logs & Laufzeitdaten ---
+logs/
+*.log
+
+# --- Editor/IDE ---
+.vscode/
+.idea/
+*.swp
