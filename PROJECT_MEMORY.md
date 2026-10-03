@@ -94,7 +94,8 @@ src/batterybar/
   estimate.py    # TimeEstimator: rate -> slope -> learned -> driver -> windows, soft-min level
   config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
   bar_window.py  # Tkinter floating bar: canvas, drag & drop, click-to-cycle display,
-                 # context menu, click-through, hotkeys, warning toast, format templates
+                 # context menu, click-through, hotkeys, warning toast, format templates;
+                 # tooltip + resize grips + ASCII version-decrypt easter egg (>5s hover)
 tools/           # read_bios_battery_mode.*: elevated HP BIOS query;
                  # build_exe.bat / build_installer.bat: PyInstaller + Inno pipeline
 installer/       # entry.py (PyInstaller entry), setup.iss (Inno script),

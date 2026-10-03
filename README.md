@@ -39,7 +39,9 @@ battery indicator.*
   HP's WMI interface (needs admin once, UAC prompt) and the bar shows
   it in health mode as `BHM: <mode>`
 - **Hover tooltip**: full battery details (machine, capacities, wear,
-  cycles, voltage, estimate source) after ~400 ms on the bar
+  cycles, voltage, estimate source) after ~400 ms on the bar —
+  held for ~5 s it morphs into an ASCII decrypt animation revealing
+  the version number (easter egg)
 - **Resizable**: drag the right/bottom edge or the corner; the size is
   remembered, "Reset size" restores the default
 - **Autostart**: "Start with Windows" in the context menu (per-user

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ctypes
 import logging
+import random
 import threading
 import time
 import tkinter as tk
@@ -29,6 +30,28 @@ _RESIZE_MARGIN = 8  # px from right/bottom edge that acts as resize grip
 _MIN_W, _MIN_H = 140, 18
 _MAX_W, _MAX_H = 1200, 160
 _TOOLTIP_DELAY_MS = 400
+_TOOLTIP_ANIM_DELAY_MS = 5000  # hover duration before the ASCII animation
+_TOOLTIP_ANIM_FRAMES = 16
+_TOOLTIP_ANIM_FRAME_MS = 70
+_ANIM_POOL = "!<>-_\\/[]{}=+*^?#%&@"
+
+# 5-row block font for the version animation ('#' -> drawn as block char)
+_ASCII_FONT: dict[str, tuple[str, ...]] = {
+    "0": ("###", "# #", "# #", "# #", "###"),
+    "1": (" # ", "## ", " # ", " # ", "###"),
+    "2": ("###", "  #", "###", "#  ", "###"),
+    "3": ("###", "  #", " ##", "  #", "###"),
+    "4": ("# #", "# #", "###", "  #", "  #"),
+    "5": ("###", "#  ", "###", "  #", "###"),
+    "6": ("###", "#  ", "###", "# #", "###"),
+    "7": ("###", "  #", "  #", " # ", " # "),
+    "8": ("###", "# #", "###", "# #", "###"),
+    "9": ("###", "# #", "###", "  #", "###"),
+    ".": (" ", " ", " ", "#", "#"),
+    "v": ("# #", "# #", "# #", "# #", " # "),
+    "-": ("   ", "   ", "###", "   ", "   "),
+}
+_ANIM_BLOCK = "█"
 
 _GWL_EXSTYLE = -20
 _WS_EX_LAYERED = 0x00080000
@@ -60,6 +83,9 @@ class BarWindow:
         self._resizing: str | None = None  # "we" | "ns" | "se" while edge-dragging
         self._tooltip: tk.Toplevel | None = None
         self._tooltip_after: str | None = None
+        self._tooltip_label: tk.Label | None = None
+        self._tipanim_after: str | None = None
+        self._tipanim: dict | None = None
 
         self.root = tk.Tk()
         self.root.title(f"{__app_name__} v{__version__}")
@@ -316,11 +342,15 @@ class BarWindow:
         frame = tk.Frame(top, bg="#ffffe1", highlightthickness=1,
                          highlightbackground="#7f7f7f")
         frame.pack()
-        tk.Label(
+        self._tooltip_label = tk.Label(
             frame, text=self._tooltip_text(), justify="left",
             bg="#ffffe1", fg="#000000",
             font=("Segoe UI", 9), padx=8, pady=6,
-        ).pack()
+        )
+        self._tooltip_label.pack()
+        self._tipanim_after = self.root.after(
+            _TOOLTIP_ANIM_DELAY_MS, self._tooltip_anim_start
+        )
         top.update_idletasks()
         x = x_root + 14
         y = y_root + 18
@@ -331,12 +361,84 @@ class BarWindow:
         self._tooltip = top
 
     def _hide_tooltip(self) -> None:
+        if self._tipanim_after is not None:
+            try:
+                self.root.after_cancel(self._tipanim_after)
+            except tk.TclError:
+                pass
+            self._tipanim_after = None
+        self._tipanim = None
+        self._tooltip_label = None
         if self._tooltip is not None:
             try:
                 self._tooltip.destroy()
             except tk.TclError:
                 pass
             self._tooltip = None
+
+    # ------------------------------------------------- tooltip ascii anim
+    def _version_art(self) -> list[str]:
+        """Big block-letter ASCII art of the version, e.g. 'v0.7.1'."""
+        rows = ["", "", "", "", ""]
+        for ch in f"v{__version__}":
+            glyph = _ASCII_FONT.get(ch, ("   ",) * 5)
+            for i in range(5):
+                rows[i] += glyph[i].replace("#", _ANIM_BLOCK) + " "
+        return [r.rstrip() for r in rows]
+
+    def _anim_frame(self, art: list[str], step: int, total: int) -> str:
+        """Decrypt effect: settled glyphs left of the sweep, glitchy
+        random chars in a band ahead of it, sparse noise beyond."""
+        width = max(len(r) for r in art)
+        edge = int(step / total * (width + 8))
+        out = []
+        for row in art:
+            line = []
+            for x, ch in enumerate(row.ljust(width)):
+                if ch == " ":
+                    line.append(" ")
+                elif x < edge:
+                    line.append(ch)
+                elif x < edge + 4:
+                    line.append(random.choice(_ANIM_POOL))
+                else:
+                    line.append(
+                        random.choice(_ANIM_POOL)
+                        if random.random() < 0.35
+                        else " "
+                    )
+            out.append("".join(line).rstrip())
+        return "\n".join(out)
+
+    def _tooltip_anim_start(self) -> None:
+        if self._tooltip_label is None:
+            return
+        self._tipanim = {"art": self._version_art(), "step": 0}
+        self._tooltip_label.configure(font=("Consolas", 9))
+        self._tipanim_after = None
+        self._tooltip_anim_tick()
+
+    def _tooltip_anim_tick(self) -> None:
+        state = self._tipanim
+        if state is None or self._tooltip_label is None:
+            return
+        state["step"] += 1
+        done = state["step"] >= _TOOLTIP_ANIM_FRAMES
+        art, step, total = state["art"], state["step"], _TOOLTIP_ANIM_FRAMES
+        if done:
+            text = "\n".join(art)
+            text += f"\n\n{__app_name__} · built with Devin (SWE-2 High)"
+        else:
+            text = self._anim_frame(art, step, total)
+        try:
+            self._tooltip_label.configure(text=text)
+        except tk.TclError:
+            self._tipanim = None
+            return
+        if not done:
+            self._tipanim_after = self.root.after(
+                _TOOLTIP_ANIM_FRAME_MS, self._tooltip_anim_tick
+            )
 
     def _cycle_display_mode(self) -> None:
         w = self._win_cfg()

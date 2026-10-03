@@ -5,6 +5,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.7.1] - 2026-10-03
+
+### Added
+
+- Tooltip easter egg: after ~5 s of hovering, the tooltip content is
+  overlaid by a pure-text ASCII animation — a left-to-right
+  "decrypt" sweep (glitch-char band + sparse noise from a character
+  pool) that settles into a 5-row block-letter rendering of the
+  version (e.g. `v0.7.1`) plus the `built with Devin (SWE-2 High)`
+  attribution line; implemented in `bar_window.py` via a small
+  `_ASCII_FONT` glyph table (digits, `v`, `.`, `-`), `Consolas`
+  rendering, ~16 frames at 70 ms; resets on tooltip hide.
+
 ## [0.7.0] - 2026-10-03
 
 ### Added
