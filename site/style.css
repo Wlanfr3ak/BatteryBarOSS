@@ -68,6 +68,37 @@
     border: 1px solid var(--border); border-radius: 8px;
     image-rendering: pixelated;  /* crisp upscale of the small UI shot */
   }
+  .lede { color: var(--dim); max-width: 660px; margin: 0 auto 22px; }
+  .lede.small { font-size: 0.85rem; margin-top: 4px; }
+  .barmock {
+    position: relative; max-width: 430px; margin: 0 auto 18px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: #141414; overflow: hidden;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  .barmock .fill {
+    position: absolute; top: 4px; bottom: 4px; left: 4px; width: 53%;
+    background: rgba(76,175,80,.22); border-radius: 3px;
+  }
+  .barmock .rows {
+    position: relative; display: flex; flex-direction: column;
+    gap: 4px; padding: 12px 0; text-align: center;
+    font-size: 0.95rem; letter-spacing: 0.5px;
+  }
+  .barmock .rows .t { color: var(--accent); font-weight: 700; }
+  .scenarios {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px; max-width: 660px; margin: 0 auto 18px;
+  }
+  .scenario {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; text-align: center;
+  }
+  .scenario b { display: block; font-size: 0.85rem; font-weight: 600; }
+  .scenario span {
+    color: var(--accent); font-weight: 700; font-size: 1.1rem;
+    font-family: Consolas, "Courier New", monospace;
+  }
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
   .card h3 { font-size: 0.95rem; margin-bottom: 6px; }

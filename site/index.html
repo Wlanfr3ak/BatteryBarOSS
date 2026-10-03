@@ -51,6 +51,30 @@
   </section>
 
   <section>
+    <h2>Emails, YouTube — or one last render?</h2>
+    <p class="lede">Everyone knows it: your battery is dying and you get
+    to choose — 10 more emails, 20 minutes of YouTube, or 5 minutes of
+    rendering? The load view understands what your last 1, 5 and 15
+    minutes of system load looked like and shows exactly how much time
+    you have left at each intensity — if you don't change a thing.</p>
+    <div class="barmock" aria-hidden="true">
+      <div class="fill"></div>
+      <div class="rows">
+        <span>load 1/5/15m&nbsp;&nbsp;&nbsp;42%&nbsp;&nbsp;&nbsp;28%&nbsp;&nbsp;&nbsp;15%</span>
+        <span class="t">batt @ load&nbsp;&nbsp;&nbsp;~0:55&nbsp;&nbsp;&nbsp;~1:40&nbsp;&nbsp;&nbsp;~3:05</span>
+      </div>
+    </div>
+    <div class="scenarios">
+      <div class="scenario"><b>Rendering @ 42 %</b><span>~0:55</span></div>
+      <div class="scenario"><b>YouTube @ 28 %</b><span>~1:40</span></div>
+      <div class="scenario"><b>Emails @ 15 %</b><span>~3:05</span></div>
+    </div>
+    <p class="lede small">A continuously learning load→drain regression
+    maps your usage to real watts — the estimates become yours, not
+    generic.</p>
+  </section>
+
+  <section>
     <div class="grid">
       <div class="card"><h3>Real remaining-time estimate</h3>
         <p>Fuel-gauge mWh/mW readings, session-average drain learning and a

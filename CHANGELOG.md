@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.9.1] - 2026-10-03
+
+### Added
+
+- Website (EN + DE): new "Emails, YouTube — or one last render?" story
+  section presenting the v0.9.0 load view — narrative copy, a CSS
+  replica of the two-row bar (with battery-fill look) and three
+  scenario chips mapping tasks to their remaining runtime at the
+  respective load level. New shared styles in `site/style.css`
+  (`.lede`, `.barmock`, `.scenarios`).
+
 ## [0.9.0] - 2026-10-03
 
 ### Added
