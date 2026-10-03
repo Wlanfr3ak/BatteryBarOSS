@@ -57,6 +57,7 @@ def _selftest() -> int:
     status = battery.read_status(
         low_threshold=int(t["low"]), critical_threshold=int(t["critical"])
     )
+    details = battery.read_power_details()
     result = {
         "app": __app_name__,
         "version": __version__,
@@ -70,7 +71,13 @@ def _selftest() -> int:
             "ac_online": status.ac_online,
             "seconds_remaining": status.seconds_remaining,
         },
-        "fields": battery.render_fields(status),
+        "power_details": None if details is None else {
+            "max_mwh": details.max_mwh,
+            "remaining_mwh": details.remaining_mwh,
+            "rate_mw": details.rate_mw,
+            "estimated_s": details.estimated_s,
+        },
+        "fields": battery.render_fields(status, details=details),
     }
     print(json.dumps(result, indent=2, ensure_ascii=False))
     return 0

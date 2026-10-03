@@ -56,20 +56,21 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 | FR-01 | Floating, frameless, always-on-top bar | ✅ v0.1.0 |
 | FR-02 | Battery level in % (Win32 `GetSystemPowerStatus`) | ✅ v0.1.0 |
 | FR-03 | Charge states: charging / discharging / full / low / critical / no battery, color-coded | ✅ v0.1.0 |
-| FR-04 | Remaining-time display (Windows estimate, "—" when unknown) | ✅ v0.1.0 |
+| FR-04 | Remaining-time display (Windows estimate, "—" when unknown) → **v0.3.0: own hybrid estimator** (fuel-gauge rate → own slope → driver estimate → Windows fallback; see `docs/BATTERY_ESTIMATION.md`) | ✅ v0.1.0 / improved v0.3.0 |
 | FR-05 | Freely positionable via drag & drop, position persisted | ✅ v0.1.0 |
 | FR-06 | JSON configuration (colors, thresholds, format, interval, start position) | ✅ v0.1.0 |
 | FR-07 | Context menu: always-on-top, click-through, position lock, reload, exit | ✅ v0.1.0 |
 | FR-08 | Warning on low/critical threshold (toast + optional beep) | ✅ v0.1.0 |
 | FR-09 | No external dependencies (Python stdlib only) | ✅ v0.1.0 |
 | FR-10 | Start without console (`run.bat` / `pythonw`), file logging | ✅ v0.1.0 |
+| FR-10a | Click-to-cycle display mode (time/percent/rate/capacity) — BatteryBar behavior | ✅ v0.3.0 |
 
 ### Should (next releases)
 
 | ID | Requirement |
 |---|---|
 | FR-11 | Extend provider architecture: more data sources via stdlib (`GetSystemTimes` CPU, `GlobalMemoryStatusEx` RAM, uptime, date/time, IP) – modelled on DesktopInfo/Conky |
-| FR-12 | Own runtime estimate from discharge history (BatteryBar Pro feature: the Windows estimate is often inaccurate); persist history |
+| FR-12 | Own runtime estimate from discharge history (BatteryBar Pro feature); persist history. **Partially done v0.3.0**: rate-based + slope + driver fallback implemented; still open: persisted statistical discharge profile |
 | FR-13 | Battery health: design vs. full-charge capacity, charge rate (`IOCTL_BATTERY_QUERY_INFORMATION` / `CallNtPowerInformation`) |
 | FR-14 | Theme system: JSON themes (color sets), theme switch in the context menu |
 | FR-15 | Autostart option (task/registry Run key, toggleable from the menu) |
@@ -133,9 +134,9 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 
 - **v0.1.x** ✅ MVP: floating battery bar, config, warnings, doc skeleton
 - **v0.2.0** ✅ Project language switched to English (docs + UI)
-- **v0.3.x**: Provider framework + CPU/RAM/time fields; format string with
-  arbitrary providers; FR-11, FR-17
-- **v0.4.x**: Battery details & own runtime estimate (FR-12, FR-13), tooltip
-- **v0.5.x**: JSON themes + theme menu (FR-14), autostart (FR-15)
+- **v0.3.0** ✅ Hybrid remaining-time estimator (fuel-gauge mWh/mW), click-to-cycle display; research doc `docs/BATTERY_ESTIMATION.md`
+- **v0.4.x**: Provider framework + CPU/RAM/time fields; format string with
+  arbitrary providers; FR-11, FR-17. Statistical discharge profile (rest of FR-12)
+- **v0.5.x**: Battery details/health (FR-13), JSON themes + theme menu (FR-14), autostart (FR-15), tooltip (FR-21)
 - **v0.6.x**: Multi-monitor (FR-16), configurable hotkeys (FR-18)
 - **v1.0.0**: Feature parity with BatteryBar Pro core functions + stability

@@ -6,11 +6,13 @@ import logging
 import tkinter as tk
 import winsound
 
-from . import __app_name__, __version__, battery, config
+from . import __app_name__, __version__, battery, config, estimate
 
 log = logging.getLogger(__name__)
 
 CHROMA = "#ff00ff"  # chroma-key color -> fully transparent window background
+_CLICK_TOLERANCE_PX = 6
+_DISPLAY_MODES = ("default", "time", "percent", "rate", "capacity")
 
 _GWL_EXSTYLE = -20
 _WS_EX_LAYERED = 0x00080000
@@ -30,7 +32,10 @@ def _hwnd(root: tk.Tk) -> int:
 class BarWindow:
     def __init__(self) -> None:
         self.settings = config.load_settings()
+        self._estimator = self._make_estimator()
+        self._last: tuple[battery.BatteryStatus, battery.PowerDetails | None, int | None] | None = None
         self._drag_offset: tuple[int, int] | None = None
+        self._drag_origin: tuple[int, int] | None = None
         self._hotkey_latch = False
         self._warn_level = 0
 
@@ -67,6 +72,12 @@ class BarWindow:
         self.root.after(150, self._hotkey_poll)
 
     # ------------------------------------------------------------------ cfg
+    def _make_estimator(self) -> estimate.TimeEstimator:
+        est = self.settings.get("estimation", {})
+        return estimate.TimeEstimator(
+            soft_min_percent=float(est.get("soft_min_percent", 5.0))
+        )
+
     def _win_cfg(self) -> dict:
         return self.settings["window"]
 
@@ -119,12 +130,12 @@ class BarWindow:
         self.canvas.bind("<Button-3>", self._show_menu)
 
     def _drag_start(self, event: tk.Event) -> None:
-        if self._win_cfg()["lock_position"]:
-            return
-        self._drag_offset = (
-            event.x_root - self.root.winfo_x(),
-            event.y_root - self.root.winfo_y(),
-        )
+        self._drag_origin = (event.x_root, event.y_root)
+        if not self._win_cfg()["lock_position"]:
+            self._drag_offset = (
+                event.x_root - self.root.winfo_x(),
+                event.y_root - self.root.winfo_y(),
+            )
 
     def _drag_move(self, event: tk.Event) -> None:
         if self._drag_offset is None:
@@ -134,12 +145,31 @@ class BarWindow:
         self.root.geometry(f"+{x}+{y}")
 
     def _drag_end(self, event: tk.Event) -> None:
-        if self._drag_offset is None:
+        origin = self._drag_origin
+        self._drag_origin = None
+        if self._drag_offset is not None:
+            self._drag_offset = None
+            x, y = self.root.winfo_x(), self.root.winfo_y()
+            config.save_local({"window": {"x": x, "y": y}})
+            log.debug("saved position %s,%s", x, y)
+        if origin is None:
             return
-        self._drag_offset = None
-        x, y = self.root.winfo_x(), self.root.winfo_y()
-        config.save_local({"window": {"x": x, "y": y}})
-        log.debug("saved position %s,%s", x, y)
+        moved = max(
+            abs(event.x_root - origin[0]), abs(event.y_root - origin[1])
+        ) >= _CLICK_TOLERANCE_PX
+        if not moved:
+            self._cycle_display_mode()
+
+    def _cycle_display_mode(self) -> None:
+        w = self._win_cfg()
+        cur = str(w.get("display_mode", "default"))
+        nxt = _DISPLAY_MODES[
+            (_DISPLAY_MODES.index(cur) + 1) % len(_DISPLAY_MODES)
+        ] if cur in _DISPLAY_MODES else _DISPLAY_MODES[0]
+        w["display_mode"] = nxt
+        config.save_local({"window": {"display_mode": nxt}})
+        if self._last is not None:
+            self._redraw(*self._last)
 
     def _show_menu(self, event: tk.Event) -> None:
         if self._win_cfg()["click_through"]:
@@ -199,12 +229,16 @@ class BarWindow:
 
     def reload_settings(self) -> None:
         self.settings = config.load_settings()
+        self._estimator = self._make_estimator()
         self._var_topmost.set(bool(self._win_cfg()["always_on_top"]))
         self._var_click.set(bool(self._win_cfg()["click_through"]))
         self._var_lock.set(bool(self._win_cfg()["lock_position"]))
         self._apply_window_attrs()
         self._place_window()
-        self._redraw(battery.read_status(**self._threshold_args()))
+        if self._last is not None:
+            self._redraw(*self._last)
+        else:
+            self._redraw(battery.read_status(**self._threshold_args()))
         log.info("settings reloaded")
 
     # -------------------------------------------------------------- hotkeys
@@ -238,14 +272,22 @@ class BarWindow:
     def _tick(self) -> None:
         try:
             status = battery.read_status(**self._threshold_args())
-            self._redraw(status)
+            details = battery.read_power_details()
+            est = self._estimator.remaining_seconds(status, details)
+            self._last = (status, details, est)
+            self._redraw(status, details, est)
             self._check_warning(status)
         except Exception:
             log.exception("update tick failed")
         self.root.after(int(self.settings["update_interval_ms"]), self._tick)
 
     # ---------------------------------------------------------------- draw
-    def _redraw(self, status: battery.BatteryStatus) -> None:
+    def _redraw(
+        self,
+        status: battery.BatteryStatus,
+        details: battery.PowerDetails | None = None,
+        est_seconds: int | None = None,
+    ) -> None:
         c = self.canvas
         w = self._win_cfg()
         col = self._colors()
@@ -264,18 +306,38 @@ class BarWindow:
                 fill=col[battery.fill_color_key(status.state)], outline="",
             )
         c.create_text(
-            width / 2, height / 2, text=self._format_text(status),
+            width / 2, height / 2, text=self._format_text(status, details, est_seconds),
             fill=col["text"],
             font=(disp["font_family"], int(disp["font_size"]), disp["font_weight"]),
         )
 
-    def _format_text(self, status: battery.BatteryStatus) -> str:
-        fields = battery.render_fields(status)
-        fmt = str(self._win_cfg().get("format") or "{percent}%")
+    def _format_text(
+        self,
+        status: battery.BatteryStatus,
+        details: battery.PowerDetails | None = None,
+        est_seconds: int | None = None,
+    ) -> str:
+        fields = battery.render_fields(
+            status,
+            est_seconds=est_seconds,
+            details=details,
+            estimated=self._estimator.source == "slope",
+        )
+        w = self._win_cfg()
+        mode_fmt = {
+            "time": "{time}",
+            "percent": "{percent}%",
+            "rate": "{rate}",
+            "capacity": "{capacity}",
+        }
+        fmt = mode_fmt.get(str(w.get("display_mode", "default"))) or str(
+            w.get("format") or "{percent}%"
+        )
         try:
-            return " ".join(fmt.format(**fields).split())
+            text = " ".join(fmt.format(**fields).split())
         except (KeyError, ValueError):
-            return f"{fields['percent']}%"
+            text = ""
+        return text or f"{fields['percent']}%"
 
     # ------------------------------------------------------------ warnings
     def _check_warning(self, status: battery.BatteryStatus) -> None:

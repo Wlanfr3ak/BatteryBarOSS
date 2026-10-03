@@ -5,6 +5,46 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.3.0] - 2026-10-03
+
+### Added
+
+- **Fuel-gauge data source** (`battery.read_power_details()`): queries
+  `CallNtPowerInformation(SYSTEM_BATTERY_STATE)` — real capacities in mWh
+  (`MaxCapacity`, `RemainingCapacity`), live drain rate (`RateOfDrain`,
+  signed mW) and driver `EstimatedTime`. New format placeholders
+  `{rate}` ("-12.3 W") and `{capacity}` ("46.7 / 53.7 Wh").
+- **Hybrid remaining-time estimator** (`estimate.TimeEstimator`), modeled
+  on BatteryBar's documented fallback chain (see new research doc
+  `docs/BATTERY_ESTIMATION.md`):
+  1. rate-based `usable_mWh / |RateOfDrain|` — plausible within seconds
+     after unplugging (replaces the previously shown Windows-only value)
+  2. own slope estimate from capacity samples (5-minute window) when the
+     battery reports no rate — time is prefixed with "~" like
+     BatteryBar's "(Estimated)"
+  3. driver `EstimatedTime`
+  4. Windows `BatteryLifeTime` (raw fallback)
+  Estimates count down to a configurable **soft minimum level**
+  (`estimation.soft_min_percent`, default 5 %) instead of real 0 % —
+  same concept as BatteryBar's "Soft minimum level".
+- **Click-to-cycle display mode**: a left-click (< 6 px movement) on the
+  bar cycles `default(format)` → `time` → `percent` → `rate` →
+  `capacity` → back — BatteryBar's confirmed click behavior (enum
+  `BatteryBarTextDisplayState` + wiki). Persisted as
+  `window.display_mode` in `settings.local.json`. Drag still moves,
+  `lock_position` still works (click toggles, drag is ignored).
+- `docs/BATTERY_ESTIMATION.md`: research write-up — what Windows APIs
+  actually deliver (incl. live probe results: WMI `EstimatedRunTime`
+  garbage vs. `SYSTEM_BATTERY_STATE` real mWh/mW), BatteryBar's
+  statistical/rate/fallback strategy from the Osiris Wiki, design adopted.
+- `--selftest` output now includes the `power_details` block.
+
+### Changed
+
+- `{time}` placeholder now uses the own estimator (was: Windows
+  `BatteryLifeTime` only) — shows a plausible value much sooner after
+  switching to battery.
+
 ## [0.2.1] - 2026-10-03
 
 ### Added

@@ -20,6 +20,7 @@ Status: 2026-10-03
 | 5 | **Rainmeter** | 4.5.26 | https://www.rainmeter.net/ · https://github.com/rainmeter/rainmeter | GPL-2.0 | `Rainmeter/` | Reference: measure->meter architecture, freely placed desktop widgets; deliberately **not** adopted 1:1 (too heavyweight) |
 | 6 | **Article: "Windows Server – show desktop info: tools compared"** | n.d. (saved web page) | saved HTML file (IT magazine comparison of BGInfo/DesktopInfo & co.) | Copyright of the respective portal – findings quoted only | `Windows Server Desktop-Infos anzeigen_ Tools im Vergleich.html(+_files)` | Market overview of alternative desktop-info tools; confirms the gap "lightweight battery/info bar" |
 | 7 | **Conky** (comparison reference, Linux) | – | https://github.com/brndnmtthws/conky | GPL-3.0 | *(not stored locally – conceptual reference only)* | Model for the format-string concept (`{percent}` placeholders in `window.format`) |
+| 8 | **Osiris Wiki (BatteryBar documentation)** | for BatteryBar 3.6.x | https://osirisdevelopment.com/wiki/Main_Page – pages: Preferences, Status Popup, Release Notes | Copyright Osiris Development – quoted facts only | *(web source, not stored)* | **Key source for the estimation algorithm** (`docs/BATTERY_ESTIMATION.md`): statistical vs. rate-based estimate, soft minimum level, discharge-rate self-estimation "(Estimated)", display-toggle enum, battery wear formula `1-(Full/Design)` |
 
 ## Adoption rules
 

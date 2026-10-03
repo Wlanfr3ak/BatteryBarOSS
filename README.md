@@ -15,11 +15,16 @@ Conky/BGInfo-style desktop info widget.
 
 ---
 
-## Features (v0.2.0)
+## Features (v0.3.0)
 
 - Floating, frameless, transparent status bar (always-on-top)
-- Battery level in %, charge state (Charging/Discharging/Full/Low/Critical),
-  remaining-time estimate
+- Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
+- **Real remaining-time estimate** from the battery fuel gauge
+  (`SYSTEM_BATTERY_STATE`: mWh capacities + mW drain rate) — plausible
+  within seconds after unplugging, counting down to a configurable
+  soft-minimum reserve instead of 0 % (see `docs/BATTERY_ESTIMATION.md`)
+- **Click-to-cycle display**: left-click on the bar toggles
+  `default → time → percent → rate → capacity` (BatteryBar-style)
 - Color-coded fill per state (configurable)
 - Freely draggable – position is remembered
 - Context menu (right click): always-on-top, click-through mode,
@@ -78,7 +83,9 @@ Key options (excerpt, full reference in `settings.json`):
 | Key | Default | Description |
 |---|---|---|
 | `window.width` / `window.height` | `220` / `28` | Bar size (px) |
-| `window.format` | `{state_icon} {percent}%` | Display template. Placeholders: `{percent}`, `{time}`, `{state}`, `{state_text}`, `{state_icon}` |
+| `window.format` | `{state_icon} {percent}% · {time}` | Display template. Placeholders: `{percent}`, `{time}`, `{rate}`, `{capacity}`, `{state}`, `{state_text}`, `{state_icon}` |
+| `window.display_mode` | `default` | `default` uses `format`; `time`/`percent`/`rate`/`capacity` show a single field — cycled by left-click |
+| `estimation.soft_min_percent` | `5.0` | Reserve floor: time counts down to this %, not to real 0 % |
 | `window.corner` / `offset_x` / `offset_y` | `top-right` / `20` / `20` | Start position (when no saved position) |
 | `thresholds.low` / `thresholds.critical` | `30` / `15` | Thresholds for warning colors + warnings (%) |
 | `colors.*` | various | Colors per state (`charging`, `discharging`, `low`, `critical`, ...) |
@@ -91,6 +98,8 @@ Format example: `"{state_icon} {percent}% · {time}"` → `⚡ 87% · 1:42 h`
 
 - **Left-click + drag**: move the bar (position is saved to
   `settings.local.json` on release)
+- **Left-click (without dragging)**: cycle the display
+  `default → time → percent → rate → capacity`
 - **Right-click**: context menu
 - **Warning toast**: appears bottom-right when the low/critical threshold is
   crossed (once per event)

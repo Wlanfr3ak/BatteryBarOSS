@@ -29,6 +29,8 @@ uptime, ...).
 | 2026-10-03 | Startup toast when `click_through` is loaded from config (v0.1.2) | Prevents silent lockout – user reported unclickable bar after restart. |
 | 2026-10-03 | GitHub remote via **SSH** (`~/.ssh/fabian` key registered on GitHub), branch `main` | User chose SSH over HTTPS+GCM. |
 | 2026-10-03 | **Mandatory AI disclosure** (AGENTS.md §12): marked as generated with **Devin (Cognition AI), model SWE-2 High** — in README top block, `NOTICE`, app menu header, commit footers | User requirement: AI authorship must stay clearly visible. |
+| 2026-10-03 | **Estimation = hybrid fallback chain** (v0.3.0): fuel-gauge `RateOfDrain`/`mWh` via `CallNtPowerInformation(SYSTEM_BATTERY_STATE)` → own 5-min slope → driver `EstimatedTime` → Windows `BatteryLifeTime`; soft-min level 5 % | BatteryBar's documented strategy (Osiris Wiki); WMI `EstimatedRunTime` proven garbage by live probe. Findings: `docs/BATTERY_ESTIMATION.md`. |
+| 2026-10-03 | **Click = cycle display mode** (`default→time→percent→rate→capacity`), drag threshold 6 px | Confirmed BatteryBar behavior (`BatteryBarTextDisplayState` enum found via reflection on `BatteryBar.exe`). |
 
 ## Environment facts (dev machine)
 
@@ -54,18 +56,22 @@ uptime, ...).
 src/batterybar/
   __init__.py    # __version__ (single source of truth)
   __main__.py    # entry: DPI awareness, console encoding, logging, CLI (--selftest)
-  battery.py     # Win32 GetSystemPowerStatus via ctypes -> BatteryStatus
+  battery.py     # Win32 GetSystemPowerStatus -> BatteryStatus;
+                 # CallNtPowerInformation(SYSTEM_BATTERY_STATE) -> PowerDetails (mWh/mW)
+  estimate.py    # TimeEstimator: rate -> slope -> driver -> windows fallback, soft-min level
   config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
-  bar_window.py  # Tkinter floating bar: canvas, drag & drop, context menu,
-                 # click-through, hotkeys, warning toast, format templates
+  bar_window.py  # Tkinter floating bar: canvas, drag & drop, click-to-cycle display,
+                 # context menu, click-through, hotkeys, warning toast, format templates
 run.bat          # launch without console (pythonw), sets PYTHONPATH=src
 config/          # settings.json, secrets.example.json (+ gitignored: local/secrets)
-docs/            # REQUIREMENTS, DEPENDENCIES, RESEARCH
+docs/            # REQUIREMENTS, DEPENDENCIES, RESEARCH, BATTERY_ESTIMATION
 ```
 
-Data flow: `battery.read_status()` -> `derive state` -> format string
-(`window.format`, placeholders `{percent} {time} {state_text} {state_icon}`)
--> canvas redraw in the `after()` interval.
+Data flow: `battery.read_status()` + `read_power_details()` ->
+`TimeEstimator.remaining_seconds()` -> format fields
+(`{percent} {time} {rate} {capacity} {state*}`, `~` prefix when
+slope-estimated) -> canvas redraw in the `after()` interval.
+Left-click (< 6 px) cycles `window.display_mode`; drag moves the bar.
 
 ## Open items / roadmap (details: docs/REQUIREMENTS.md section 8)
 
@@ -74,8 +80,10 @@ Data flow: `battery.read_status()` -> `derive state` -> format string
 - [ ] Theme system (JSON themes instead of BatteryBar's PNG themes)
 - [ ] Battery details via `IOCTL_BATTERY_QUERY_INFORMATION`: charge rate,
       wear (FullCharged vs. DesignCapacity), statistics/history
-- [ ] Own remaining-time estimate (BatteryBar Pro style: learn from
-      discharge history instead of the Windows estimate)
+- [x] ~~Own remaining-time estimate~~ v0.3.0: hybrid estimator implemented
+      (rate -> slope -> driver -> windows). Still open: **persisted
+      statistical discharge profile** (BatteryBar's statistical mode —
+      survives restarts, learns long-term drain patterns)
 - [ ] Multi-monitor/DPI refinements, rounded corners (PNG/alpha)
 - [ ] Optional PyInstaller single-EXE build (optional dev tool only!)
 - [ ] Autostart option (registry Run key or autostart shortcut)

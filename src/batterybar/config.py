@@ -28,7 +28,11 @@ DEFAULT_SETTINGS: dict = {
         "always_on_top": True,
         "click_through": False,
         "lock_position": False,
+        "display_mode": "default",
         "format": "{state_icon} {percent}% · {time}",
+    },
+    "estimation": {
+        "soft_min_percent": 5.0,
     },
     "display": {
         "font_family": "Segoe UI",

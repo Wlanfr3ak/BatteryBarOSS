@@ -1,5 +1,5 @@
 {
-  "_comment": "BatteryBar OSS - default configuration. Personal overrides go to config/settings.local.json (not committed). Placeholders in 'format': {percent} {time} {state} {state_text} {state_icon}",
+  "_comment": "BatteryBar OSS - default configuration. Personal overrides go to config/settings.local.json (not committed). Placeholders in 'format': {percent} {time} {rate} {capacity} {state} {state_text} {state_icon}. 'display_mode' cycles on left-click: default|time|percent|rate|capacity.",
   "window": {
     "width": 220,
     "height": 28,
@@ -12,7 +12,11 @@
     "always_on_top": true,
     "click_through": false,
     "lock_position": false,
+    "display_mode": "default",
     "format": "{state_icon} {percent}% · {time}"
+  },
+  "estimation": {
+    "soft_min_percent": 5.0
   },
   "display": {
     "font_family": "Segoe UI",
