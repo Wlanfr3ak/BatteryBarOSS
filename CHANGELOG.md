@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.5.1] - 2026-10-03
+
+### Added
+
+- **README screenshot** (`docs/screenshot-compare.jpg`): live
+  comparison provided by the maintainer — BatteryBar OSS (top, showing
+  `93% · ~4:34 h` with the `~` estimate marker), the original
+  BatteryBar Pro (middle, `5:00`) and the Windows 11 tray indicator
+  (bottom) side by side.
+
 ## [0.5.0] - 2026-10-03
 
 ### Added

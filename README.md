@@ -13,6 +13,12 @@ Conky/BGInfo-style desktop info widget.
 - Ready right after `git clone`: double-click `run.bat`, done
 - Current version: see `CHANGELOG.md` | License: MIT
 
+![Comparison screenshot](docs/screenshot-compare.jpg)
+
+*Top: BatteryBar OSS (93 % · ~4:34 h — the `~` marks our own estimate).
+Middle: the original BatteryBar Pro (5:00). Bottom: Windows 11 tray
+battery indicator.*
+
 ---
 
 ## Features (v0.5.0)
