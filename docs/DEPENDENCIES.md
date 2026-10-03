@@ -1,54 +1,55 @@
-# DEPENDENCIES.md – Abhängigkeiten, Quellen & Lizenzen
+# DEPENDENCIES.md – dependencies, sources & licenses
 
-Verbindliche Tabelle lt. `AGENTS.md` §4. Wird bei jeder Änderung mitgepflegt.
-**Laufzeit-Prinzip: nur Python-Standardbibliothek – kein `pip install` nötig.**
+Authoritative table per `AGENTS.md` section 4. Kept updated with every change.
+**Runtime principle: Python standard library only – no `pip install` needed.**
 
-Stand: 2026-10-03 (v0.1.0)
+Status: 2026-10-03 (v0.2.0)
 
 ---
 
-## 1. Laufzeit-Abhängigkeiten
+## 1. Runtime dependencies
 
-| # | Abhängigkeit | Version | Zweck | Quelle | Lizenz | Installation |
+| # | Dependency | Version | Purpose | Source | License | Installation |
 |---|---|---|---|---|---|---|
-| 1 | **Python** | ≥ 3.11 (entwickelt mit 3.14.8) | Interpreter/Laufzeit | https://www.python.org/downloads/ | [PSF-2.0](https://docs.python.org/3/license.html) (OSI-approved, GPL-kompatibel) | `winget install Python.Python.3.14` oder Installer von python.org. Option „Add python.exe to PATH" aktivieren; Tkinter ist im Standard-Installer enthalten |
-| 2 | **Tkinter / tk** | im Python-Installer enthalten | GUI-Fenster (schwebende Leiste, Canvas, Menü) | gebündelt mit Python (Tk 8.6.x) | Tcl/Tk License (BSD-ähnlich, frei) | enthalten – kein separater Schritt; nur bei „custom install" die Option *tcl/tk and IDLE* aktiviert lassen |
-| 3 | **Win32-API** | OS-Komponente | Akku-Status (`kernel32!GetSystemPowerStatus`), Fenster-Styles (`user32`), Sound (`winmm` via `winsound`) | Bestandteil von Windows | Microsoft Windows – keine separate Lizenz nötig | nicht installierbar – OS-Bestandteil, Zugriff via `ctypes`/`winsound` (stdlib) |
+| 1 | **Python** | >= 3.11 (developed with 3.14.8) | Interpreter/runtime | https://www.python.org/downloads/ | [PSF-2.0](https://docs.python.org/3/license.html) (OSI-approved, GPL-compatible) | `winget install Python.Python.3.14` or the installer from python.org. Enable "Add python.exe to PATH"; Tkinter is included in the standard installer |
+| 2 | **Tkinter / tk** | bundled with Python | GUI window (floating bar, canvas, menu) | bundled with Python (Tk 8.6.x) | Tcl/Tk License (BSD-style, free) | included – no separate step; with "custom install" keep *tcl/tk and IDLE* enabled |
+| 3 | **Win32 API** | OS component | Battery status (`kernel32!GetSystemPowerStatus`), window styles (`user32`), sound (`winmm` via `winsound`) | part of Windows | Microsoft Windows – no separate license needed | not installable – OS component, accessed via `ctypes`/`winsound` (stdlib) |
 
-**Python-Module, die genutzt werden (alle Standardbibliothek):**
+**Python modules used (all standard library):**
 `tkinter`, `ctypes`, `json`, `argparse`, `logging`, `logging.handlers`,
 `pathlib`, `dataclasses`, `winsound`, `sys`, `os`
 
-## 2. Entwicklungs-Werkzeuge
+## 2. Development tools
 
-| # | Werkzeug | Version | Zweck | Quelle | Lizenz | Installation |
+| # | Tool | Version | Purpose | Source | License | Installation |
 |---|---|---|---|---|---|---|
-| 1 | **Git** | 2.x (entwickelt mit 2.52) | Versionskontrolle | https://git-scm.com/download/win | [GPL-2.0](https://git-scm.com/about/free-and-open-source) | `winget install Git.Git` oder Installer |
+| 1 | **Git** | 2.x (developed with 2.52) | Version control | https://git-scm.com/download/win | [GPL-2.0](https://git-scm.com/about/free-and-open-source) | `winget install Git.Git` or installer |
 
-## 3. Optionale Werkzeuge (nie Laufzeitvoraussetzung)
+## 3. Optional tools (never a runtime requirement)
 
-| # | Werkzeug | Version | Zweck | Quelle | Lizenz | Installation |
+| # | Tool | Version | Purpose | Source | License | Installation |
 |---|---|---|---|---|---|---|
-| 1 | **PyInstaller** | ≥ 6.x (optional, noch nicht im Einsatz) | Bauen einer Einzel-EXE für Nutzer ohne Python | https://pyinstaller.org/ | GPL-2.0 **mit** [Bootloader-Ausnahme](https://pyinstaller.org/en/stable/license.html) (kompilierte Ausgaben lizenzfrei verwendbar) | `pip install pyinstaller` – nur für Maintainer-Releases; Endnutzer brauchen dann überhaupt kein Python |
+| 1 | **PyInstaller** | >= 6.x (optional, not in use yet) | Building a single EXE for users without Python | https://pyinstaller.org/ | GPL-2.0 **with** [bootloader exception](https://pyinstaller.org/en/stable/license.html) (compiled outputs freely usable) | `pip install pyinstaller` – for maintainer releases only; end users then need no Python at all |
 
-## 4. Ressourcen aus Drittquellen
+## 4. Third-party resources
 
-Aktuell **keine** fremden Ressourcen (Icons, Bilder, Code, Fonts) im Projekt.
-Falls zukünftig hinzugefügt: Eintrag hier Pflicht (AGENTS.md §11).
+Currently **no** third-party resources (icons, images, code, fonts) in
+the project. If added in the future: an entry here is mandatory
+(AGENTS.md section 11).
 
-| Ressource | Quelle | Lizenz | Verwendung |
+| Resource | Source | License | Usage |
 |---|---|---|---|
 | – | – | – | – |
 
-## 5. Recherche-Referenzen (kein Bestandteil der Software)
+## 5. Research references (not part of the software)
 
-Siehe `docs/RESEARCH.md` – dort sind alle analysierten Fremd-Tools mit
-Quelle und Lizenz dokumentiert. Deren Rohdateien liegen lokal unter
-`Recherchen/` und werden **nicht** ins Git übernommen.
+See `docs/RESEARCH.md` – all analysed third-party tools are documented
+there with source and license. Their raw files live locally under
+`Recherchen/` and are **not** committed to git.
 
-## 6. Kompatibilitäts-Notizen
+## 6. Compatibility notes
 
-- Windows 10/11 (entwickelt auf Windows 11 24H2)
-- Python 3.11+ nötig für verwendete Typannotationen/`tomllib`-reife Struktur;
-  getestet mit 3.14
-- Keine Admin-Rechte erforderlich
+- Windows 10/11 (developed on Windows 11 24H2)
+- Python 3.11+ required for the type-annotation style used;
+  tested with 3.14
+- No admin rights required

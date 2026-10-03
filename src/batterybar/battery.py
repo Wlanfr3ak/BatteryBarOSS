@@ -83,14 +83,14 @@ def format_duration(seconds: int | None) -> str:
     return f"{hours}:{minutes:02d} h"
 
 
-STATE_TEXT_DE = {
-    "charging": "Lädt",
-    "discharging": "Entlädt",
-    "low": "Niedrig",
-    "critical": "Kritisch",
-    "charged": "Voll",
-    "ac": "Netzbetrieb",
-    "nobattery": "Kein Akku",
+STATE_TEXT = {
+    "charging": "Charging",
+    "discharging": "Discharging",
+    "low": "Low",
+    "critical": "Critical",
+    "charged": "Full",
+    "ac": "On AC",
+    "nobattery": "No battery",
 }
 
 STATE_ICON = {
@@ -121,7 +121,7 @@ def render_fields(status: BatteryStatus) -> dict[str, str]:
         "percent": str(percent),
         "time": format_duration(status.seconds_remaining),
         "state": status.state,
-        "state_text": STATE_TEXT_DE.get(status.state, status.state),
+        "state_text": STATE_TEXT.get(status.state, status.state),
         "state_icon": STATE_ICON.get(status.state, ""),
     }
 

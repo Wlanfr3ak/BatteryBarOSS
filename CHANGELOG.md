@@ -1,88 +1,103 @@
 # Changelog
 
-Alle nennenswerten Änderungen an diesem Projekt werden hier dokumentiert.
-Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
-Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
-Regeln: siehe `AGENTS.md` §1–§3.
+All notable changes to this project are documented here.
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+versioning follows [Semantic Versioning](https://semver.org/).
+Rules: see `AGENTS.md` sections 1-3.
+
+## [0.2.0] - 2026-10-03
+
+### Changed
+
+- **Project language switched to English**: all documentation
+  (`AGENTS.md`, `README.md`, `CHANGELOG.md`, `PROJECT_MEMORY.md`,
+  `docs/*`), config comments and launcher comments translated to English.
+  Rationale: broader reach for the open-source project. The maintainer
+  may continue to communicate in German outside the repository.
+- **UI strings switched to English**: context menu ("Always on top",
+  "Click-through", "Lock position", "Reload settings", "Exit"), toast
+  messages and battery state texts ("Charging", "Discharging", "Low",
+  "Critical", "Full", "On AC", "No battery"). `STATE_TEXT_DE` in
+  `battery.py` renamed to `STATE_TEXT` accordingly.
+- `AGENTS.md` §7 updated: documentation language is now English
+  (was: German); commit messages are English as well.
 
 ## [0.1.2] - 2026-10-03
 
-### Behoben
+### Fixed
 
-- **Lockout durch persistierten Click-Through-Modus**: war
-  `click_through` einmal aktiviert und in `settings.local.json`
-  gespeichert, blieb die Leiste auch nach Neustart dauerhaft
-  unanklickbar (gemeldet vom User). Sofortmaßnahme: Eintrag aus der
-  lokalen Config entfernt.
+- **Lockout caused by persisted click-through mode**: once `click_through`
+  was enabled and saved to `settings.local.json`, the bar stayed
+  permanently unclickable even after restarts (user report). Immediate
+  fix: entry removed from the local config.
 
-### Hinzugefügt
+### Added
 
-- **Hinweis-Toast beim Start mit aktivem Click-Through**: erscheint
-  600 ms nach Start, wenn `click_through` geladen wurde, und zeigt den
-  Rückkehr-Hotkey (`Strg+Alt+B`) — verhindert stille Lockouts nach
-  Neustarts.
+- **Hint toast on startup with active click-through**: appears 600 ms
+  after launch when `click_through` was loaded, and shows the return
+  hotkey (`Ctrl+Alt+B`) — prevents silent lockouts after restarts.
 
 ## [0.1.1] - 2026-10-03
 
-### Hinzugefügt
+### Added
 
-- **GitHub-Anbindung dokumentiert** (`PROJECT_MEMORY.md`): Remote-URL
-  (`git@github.com:Wlanfr3ak/BatteryBarOSS.git`), SSH-Key-Setup
-  (`~/.ssh/fabian`, `Host github.com`-Eintrag), Account-/Autor-Info –
-  erleichtert Wiederaufnahme nach frischem Clone und auf anderen Maschinen.
+- **GitHub integration documented** (`PROJECT_MEMORY.md`): remote URL
+  (`git@github.com:Wlanfr3ak/BatteryBarOSS.git`), SSH key setup
+  (`~/.ssh/fabian`, `Host github.com` entry), account/author info —
+  eases resumption after a fresh clone and on other machines.
 
 ## [0.1.0] - 2026-10-03
 
-Erster MVP. Grundstein des Projekts: Projektregeln, Dokumentationsgerüst und
-eine lauffähige schwebende Akku-Leiste ausschließlich mit
-Python-Standardbibliothek.
+First MVP. Project foundation: rulebook, documentation skeleton and a
+working floating battery bar using only the Python standard library.
 
-### Hinzugefügt
+### Added
 
-- **Floating Battery Bar** (`src/batterybar/`):
-  - Rahmenloses, transparentes, always-on-top Fenster (Tkinter,
+- **Floating battery bar** (`src/batterybar/`):
+  - Frameless, transparent, always-on-top window (Tkinter,
     `overrideredirect` + `-transparentcolor`)
-  - Akkustand via Win32 `GetSystemPowerStatus` (ctypes, keine externen
-    Module): Prozent, Ladezustand, Restlaufzeit
-  - Zustands-Farbcodierung: Entladen, Laden, Voll, Niedrig, Kritisch,
-    Kein Akku – Farben frei konfigurierbar
-  - Anzeige-Template mit Platzhaltern `{percent}`, `{time}`, `{state}`,
-    `{state_text}`, `{state_icon}` (Conky-artige Formatstrings)
-  - Drag & Drop mit Positionspersistenz nach `settings.local.json`
-  - Kontextmenü (Rechtsklick): Always-on-Top, Click-Through,
-    Positionssperre, Config-Reload, Beenden
-  - Click-Through-Modus (WS_EX_TRANSPARENT via ctypes) + globale Hotkeys
-    `Strg+Alt+B` (Toggle) und `Strg+Alt+Q` (Beenden) via
-    `GetAsyncKeyState`-Polling
-  - Warn-Toast (unten rechts, `winsound`-Beep optional) beim
-    Unterschreiten der Low-/Critical-Schwellen, einmalig pro Ereignis
-  - DPI-Awareness (shcore `SetProcessDpiAwareness(2)`, Fallback user32)
-  - Logging via `RotatingFileHandler` nach `logs/batterybar.log`
-  - CLI: `--selftest` (Config + Akku lesen, kein GUI)
-- **Konfiguration** (`config/`):
-  - `settings.json` (committed Defaults), `settings.local.json`
-    (gitignored Overrides), `secrets.example.json`/`secrets.json`
-    (Secrets-Infrastruktur, gitignored)
-- **Projekt-Regelwerk**:
-  - `AGENTS.md` – SemVer-Versionierung, Changelog-Pflicht, Commit-Konvention
-    `vX.Y.Z`, Dependencies-Tabelle, Secrets-/Recherche-Regeln
-  - `PROJECT_MEMORY.md` – Projektgedächtnis (Entscheidungen, Umgebung,
-    Architektur, Roadmap)
-- **Dokumentation**:
-  - `README.md` (Installations-, Konfigurations-, Bedienungsanleitung)
-  - `docs/REQUIREMENTS.md` – Funktions-Sichtung aus den Referenz-Tools,
-    MoSCoW-priorisierte Anforderungen, Roadmap
-  - `docs/DEPENDENCIES.md` – Abhängigkeiten-Tabelle mit Quellen, Lizenzen,
-    Installationsanleitungen
-  - `docs/RESEARCH.md` – Recherche-Quellen (Rohdateien bewusst nicht im Git)
-- **Repo-Grundlagen**: `LICENSE` (MIT), `.gitignore` (Secrets, Recherchen,
-  Build-Artefakte, Logs ausgeschlossen), `.gitattributes` (Zeilenenden),
-  `run.bat` (Starter ohne Konsole)
+  - Battery status via Win32 `GetSystemPowerStatus` (ctypes, no external
+    modules): percent, charge state, remaining time
+  - State color coding: discharging, charging, full, low, critical,
+    no battery — colors freely configurable
+  - Display template with placeholders `{percent}`, `{time}`, `{state}`,
+    `{state_text}`, `{state_icon}` (Conky-style format strings)
+  - Drag & drop with position persistence to `settings.local.json`
+  - Context menu (right click): always-on-top, click-through,
+    position lock, config reload, exit
+  - Click-through mode (WS_EX_TRANSPARENT via ctypes) + global hotkeys
+    `Ctrl+Alt+B` (toggle) and `Ctrl+Alt+Q` (quit) via
+    `GetAsyncKeyState` polling
+  - Warning toast (bottom right, optional `winsound` beep) on crossing
+    the low/critical thresholds, once per event
+  - DPI awareness (shcore `SetProcessDpiAwareness(2)`, user32 fallback)
+  - Logging via `RotatingFileHandler` to `logs/batterybar.log`
+  - CLI: `--selftest` (read config + battery, no GUI)
+- **Configuration** (`config/`):
+  - `settings.json` (committed defaults), `settings.local.json`
+    (gitignored overrides), `secrets.example.json`/`secrets.json`
+    (secrets infrastructure, gitignored)
+- **Project rules**:
+  - `AGENTS.md` – SemVer versioning, changelog requirement, commit
+    convention `vX.Y.Z`, dependencies/secrets/research rules
+  - `PROJECT_MEMORY.md` – project memory (decisions, environment,
+    architecture, roadmap)
+- **Documentation**:
+  - `README.md` (installation, configuration, usage guide)
+  - `docs/REQUIREMENTS.md` – feature survey of the reference tools,
+    MoSCoW-prioritized requirements, roadmap
+  - `docs/DEPENDENCIES.md` – dependency table with sources, licenses,
+    installation instructions
+  - `docs/RESEARCH.md` – research sources (raw files deliberately not
+    committed)
+- **Repo basics**: `LICENSE` (MIT), `.gitignore` (secrets, research
+  files, build artifacts, logs excluded), `.gitattributes` (line
+  endings), `run.bat` (launcher without console)
 
-### Technik-Entscheidungen
+### Technical decisions
 
-- Tech-Stack **Python + Tkinter, nur Standardbibliothek** – vom User bestätigt;
-  Ziel: null Installationsaufwand nach `git clone` (Details:
+- Tech stack **Python + Tkinter, standard library only** — confirmed by
+  the user; goal: zero setup effort after `git clone` (details:
   `PROJECT_MEMORY.md`)
-- Keine Deskband/Taskbar-Integration möglich unter Windows 11 → frei
-  schwebendes Fenster als Ersatzkonzept
+- No deskband/taskbar integration possible on Windows 11 → floating
+  window as replacement concept

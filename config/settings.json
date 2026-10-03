@@ -1,5 +1,5 @@
 {
-  "_comment": "BatteryBar OSS - Standardkonfiguration. Persoenliche Overrides in config/settings.local.json (wird nicht committed). Platzhalter in 'format': {percent} {time} {state} {state_text} {state_icon}",
+  "_comment": "BatteryBar OSS - default configuration. Personal overrides go to config/settings.local.json (not committed). Placeholders in 'format': {percent} {time} {state} {state_text} {state_icon}",
   "window": {
     "width": 220,
     "height": 28,

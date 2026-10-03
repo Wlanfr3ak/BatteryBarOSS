@@ -1,7 +1,7 @@
 @echo off
 rem ==========================================================================
-rem  BatteryBar OSS - Starter (ohne Konsolenfenster via pythonw)
-rem  Debug mit Konsole:  set PYTHONPATH=%CD%\src ^&^& python -m batterybar
+rem  BatteryBar OSS - launcher (no console window, via pythonw)
+rem  Debug with console:  set PYTHONPATH=%CD%\src ^&^& python -m batterybar
 rem ==========================================================================
 setlocal
 set "ROOT=%~dp0"

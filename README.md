@@ -1,126 +1,126 @@
 # BatteryBar OSS
 
-Frei schwebende Akku-Statusleiste für Windows 11 – der Open-Source-Ersatz für
-das eingestellte **BatteryBar (Pro)**. Langfristig erweiterbar zu einem
-Conky-/BGInfo-artigen Desktop-Info-Widget.
+A floating battery status bar for Windows 11 – an open-source replacement for
+the discontinued **BatteryBar (Pro)**. Designed to grow into a
+Conky/BGInfo-style desktop info widget.
 
-- **Keine externen Abhängigkeiten** – läuft komplett mit der
-  Python-Standardbibliothek (Tkinter + Win32-API via ctypes)
-- Nach `git clone` sofort startklar: `run.bat` doppelklicken, fertig
-- Aktuelle Version: siehe `CHANGELOG.md` | Lizenz: MIT
+- **Zero external dependencies** – runs entirely on the Python standard
+  library (Tkinter + Win32 API via ctypes)
+- Ready right after `git clone`: double-click `run.bat`, done
+- Current version: see `CHANGELOG.md` | License: MIT
 
 ---
 
-## Features (v0.1.0)
+## Features (v0.2.0)
 
-- Schwebende, rahmenlose, transparente Statusleiste (always-on-top)
-- Akkustand in %, Ladezustand (Lädt/Entlädt/Voll/Niedrig/Kritisch),
-  verbleibende Laufzeit-Schätzung
-- Farbcodierte Füllung je Zustand (konfigurierbar)
-- Frei verschiebbar per Drag & Drop – Position wird gespeichert
-- Kontextmenü (Rechtsklick): Vordergrund, Durchklick-Modus,
-  Positionssperre, Config-Reload, Beenden
-- Warn-Popup bei Unterschreiten der Niedrig-/Kritisch-Schwellen
-- Vollständig über JSON konfigurierbar (Farben, Schwellen, Format, Intervalle)
-- Logging nach `logs/batterybar.log`
+- Floating, frameless, transparent status bar (always-on-top)
+- Battery level in %, charge state (Charging/Discharging/Full/Low/Critical),
+  remaining-time estimate
+- Color-coded fill per state (configurable)
+- Freely draggable – position is remembered
+- Context menu (right click): always-on-top, click-through mode,
+  position lock, config reload, exit
+- Warning popup when the low/critical thresholds are crossed
+- Fully configurable via JSON (colors, thresholds, format, intervals)
+- Logging to `logs/batterybar.log`
 
-**Globale Hotkeys** (immer aktiv, auch im Durchklick-Modus):
+**Global hotkeys** (always active, even in click-through mode):
 
-| Hotkey | Aktion |
+| Hotkey | Action |
 |---|---|
-| `Strg + Alt + B` | Durchklick-Modus (Click-Through) umschalten |
-| `Strg + Alt + Q` | Beenden |
+| `Ctrl + Alt + B` | Toggle click-through mode |
+| `Ctrl + Alt + Q` | Quit |
 
-## Voraussetzungen
+## Requirements
 
 - Windows 10/11
-- Python ≥ 3.11 (Tkinter ist in der Standardinstallation enthalten)
+- Python >= 3.11 (Tkinter is included in the standard installer)
 
-Details und Installationsanleitungen: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+Details and installation instructions: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
 
-## Installation & Start
+## Installation & start
 
 ```bat
-git clone <repo-url>
-cd "2026-10-03 - BatteryBarOSS"
+git clone https://github.com/Wlanfr3ak/BatteryBarOSS.git
+cd BatteryBarOSS
 run.bat
 ```
 
-`run.bat` startet die Leiste ohne Konsole (`pythonw`). Zum Debuggen mit
-sichtbarer Konsole:
+`run.bat` starts the bar without a console window (`pythonw`). For debugging
+with a visible console:
 
 ```bat
 set PYTHONPATH=%CD%\src
 python -m batterybar
 ```
 
-Selbsttest ohne GUI (liest Config + Akkustand, Exit-Code 0 = ok):
+Self-test without GUI (reads config + battery status, exit code 0 = ok):
 
 ```bat
 set PYTHONPATH=%CD%\src
 python -m batterybar --selftest
 ```
 
-## Konfiguration
+## Configuration
 
-| Datei | Zweck | Im Git? |
+| File | Purpose | In git? |
 |---|---|---|
-| `config/settings.json` | Standard-Einstellungen | ja |
-| `config/settings.local.json` | persönliche Overrides (überschreiben Defaults) | nein |
-| `config/secrets.json` | Secrets/Keys (Vorlage: `secrets.example.json`) | nein, niemals |
+| `config/settings.json` | Default settings | yes |
+| `config/settings.local.json` | Personal overrides (override defaults) | no |
+| `config/secrets.json` | Secrets/keys (template: `secrets.example.json`) | no, never |
 
-Wichtigste Optionen (Auszug, vollständige Referenz in `settings.json`):
+Key options (excerpt, full reference in `settings.json`):
 
-| Schlüssel | Default | Beschreibung |
+| Key | Default | Description |
 |---|---|---|
-| `window.width` / `window.height` | `220` / `28` | Größe der Leiste (px) |
-| `window.format` | `{state_icon} {percent}%` | Anzeige-Template. Platzhalter: `{percent}`, `{time}`, `{state}`, `{state_text}`, `{state_icon}` |
-| `window.corner` / `offset_x` / `offset_y` | `top-right` / `20` / `20` | Startposition (wenn keine gespeicherte Position) |
-| `thresholds.low` / `thresholds.critical` | `30` / `15` | Schwellen für Warnfarben + Warnungen (%) |
-| `colors.*` | diverse | Farben je Zustand (`charging`, `discharging`, `low`, `critical`, …) |
-| `warnings.enabled` / `beep` | `true` / `false` | Warn-Popup/Ton bei Schwellen-Unterschreitung |
-| `update_interval_ms` | `1000` | Aktualisierungsintervall |
+| `window.width` / `window.height` | `220` / `28` | Bar size (px) |
+| `window.format` | `{state_icon} {percent}%` | Display template. Placeholders: `{percent}`, `{time}`, `{state}`, `{state_text}`, `{state_icon}` |
+| `window.corner` / `offset_x` / `offset_y` | `top-right` / `20` / `20` | Start position (when no saved position) |
+| `thresholds.low` / `thresholds.critical` | `30` / `15` | Thresholds for warning colors + warnings (%) |
+| `colors.*` | various | Colors per state (`charging`, `discharging`, `low`, `critical`, ...) |
+| `warnings.enabled` / `beep` | `true` / `false` | Warning popup/beep on threshold crossing |
+| `update_interval_ms` | `1000` | Refresh interval |
 
-Format-Beispiel: `"{state_icon} {percent}% · {time}"` → `⚡ 87% · 1:42 h`
+Format example: `"{state_icon} {percent}% · {time}"` → `⚡ 87% · 1:42 h`
 
-## Bedienung
+## Usage
 
-- **Linksklick + Ziehen**: Leiste verschieben (Position wird beim Loslassen
-  nach `settings.local.json` gespeichert)
-- **Rechtsklick**: Kontextmenü
-- **Warn-Toast**: erscheint unten rechts, sobald Low-/Critical-Schwelle
-  unterschritten wird (einmalig pro Ereignis)
+- **Left-click + drag**: move the bar (position is saved to
+  `settings.local.json` on release)
+- **Right-click**: context menu
+- **Warning toast**: appears bottom-right when the low/critical threshold is
+  crossed (once per event)
 
-## Projektstruktur
+## Project structure
 
 ```
-├── AGENTS.md            # verbindliche Projektregeln (Versionierung, Changelog, Lizenzen)
-├── CHANGELOG.md         # Versionshistorie (Keep a Changelog)
-├── PROJECT_MEMORY.md    # Projektgedächtnis (Entscheidungen, Stand, Roadmap)
+├── AGENTS.md            # binding project rules (versioning, changelog, licenses)
+├── CHANGELOG.md         # version history (Keep a Changelog)
+├── PROJECT_MEMORY.md    # project memory (decisions, status, roadmap)
 ├── LICENSE              # MIT
 ├── README.md
-├── run.bat              # Starter (pythonw, kein Konsolenfenster)
+├── run.bat              # launcher (pythonw, no console window)
 ├── config/
-│   ├── settings.json           # Defaults
-│   └── secrets.example.json    # Vorlage für secrets.json
-├── src/batterybar/      # Anwendungscode (siehe PROJECT_MEMORY.md §Architektur)
+│   ├── settings.json           # defaults
+│   └── secrets.example.json    # template for secrets.json
+├── src/batterybar/      # application code (see PROJECT_MEMORY.md §Architecture)
 ├── docs/
-│   ├── REQUIREMENTS.md  # Anforderungen (Funktions-Sichtung, MoSCoW, Roadmap)
-│   ├── DEPENDENCIES.md  # Abhängigkeiten: Quellen, Lizenzen, Installation
-│   └── RESEARCH.md      # Recherche-Quellen (Rohdateien nicht im Repo)
-└── Recherchen/          # lokale Recherche-Rohdateien (nicht im Git)
+│   ├── REQUIREMENTS.md  # requirements (feature survey, MoSCoW, roadmap)
+│   ├── DEPENDENCIES.md  # dependencies: sources, licenses, installation
+│   └── RESEARCH.md      # research sources (raw files not in the repo)
+└── Recherchen/          # local research raw files (not in git)
 ```
 
-## Mitmachen / Entwicklung
+## Contributing / development
 
-Vor Änderungen bitte `AGENTS.md` lesen – dort sind Changelog-Pflicht,
-SemVer-Versionierung, Commit-Konvention (`vX.Y.Z:`) und Lizenz-/Quellen-Regeln
-festgelegt.
+Please read `AGENTS.md` before making changes – it defines the changelog
+requirement, SemVer versioning, commit convention (`vX.Y.Z`) and
+license/source rules.
 
-## Lizenz & Quellen
+## License & sources
 
-- Eigenes Projekt: [MIT](LICENSE)
-- Referenz-Implementierungen/Recherche: [docs/RESEARCH.md](docs/RESEARCH.md)
-- Abhängigkeiten & deren Lizenzen: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
-- Inspiriert von **BatteryBar** (Osiris Development, eingestellt) – komplette
-  Neuentwicklung, kein fremder Code übernommen.
+- This project: [MIT](LICENSE)
+- Reference implementations / research: [docs/RESEARCH.md](docs/RESEARCH.md)
+- Dependencies and their licenses: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+- Inspired by **BatteryBar** (Osiris Development, discontinued) – a complete
+  rewrite, no third-party code reused.

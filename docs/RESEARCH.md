@@ -1,31 +1,31 @@
-# RESEARCH.md – Recherche-Quellen
+# RESEARCH.md – research sources
 
-Dokumentation aller Recherche-Quellen lt. `AGENTS.md` §6.
-Die **Rohdateien** liegen lokal unter `Recherchen/` und werden aus
-Lizenz-/Größengründen **nicht** ins Git übernommen. Wer das Repo klont,
-kann die Quellen über die unten genannten URLs erneut beziehen.
+Documentation of all research sources per `AGENTS.md` section 6.
+The **raw files** live locally under `Recherchen/` and are **not**
+committed to git for licensing/size reasons. Anyone cloning the repo
+can re-obtain the sources via the URLs listed below.
 
-Stand: 2026-10-03
+Status: 2026-10-03
 
 ---
 
-## Verzeichnis der Quellen
+## Source directory
 
-| # | Quelle / Tool | Version | Bezugsquelle (URL) | Lizenz | Lokaler Pfad (`Recherchen/`) | Relevanz fürs Projekt |
+| # | Source / tool | Version | Source (URL) | License | Local path (`Recherchen/`) | Relevance to the project |
 |---|---|---|---|---|---|---|
-| 1 | **BatteryBar / BatteryBar Pro** (Osiris Development, Chris Thompson) | 3.6.6 (Setup, entpackt) | http://osirisdevelopment.com/BatteryBar (Projekt eingestellt; Seite teils nur noch via Web-Archiv erreichbar) | Proprietär (Free/Pro) – **kein Code übernommen**, nur Feature-/UX-Analyse | `BatteryBarPro/` | Referenz-Funktionsumfang: Zustandsmodell (Discharging/Low/Critical/Charging), Theme-Struktur (`theme.xml` mit Zuständen + Farben/Fonts), Schwellen-Warnungen, Restlaufzeit-Anzeige. Basis für `docs/REQUIREMENTS.md` FR-01…FR-08, FR-12 |
-| 2 | **BGInfo** (Microsoft Sysinternals, Bryce Cogswell/Mark Russinovich) | 4.x | https://learn.microsoft.com/sysinternals/downloads/bginfo | Sysinternals Software License Terms (`BGINfo/BGInfo/Eula.txt`) | `BGINfo/` | Referenz „Systemdaten auf dem Desktop anzeigen"; Idee frei wählbarer Daten-Felder → Provider-Konzept |
-| 3 | **DesktopInfo** (Glenn Delahoy) | 3.23.0 | https://www.glenn.delahoy.com/desktopinfo/ | Freeware (proprietär) | `DesktopInfo/` | Referenz: INI-Konfiguration, große Provider-Vielfalt, Portable-App-Ansatz; Manual PDF als Feature-Katalog |
-| 4 | **PowerBGInfo** (EvotecIT, Przemysław Kłys) | Branch v2-speedygonzales | https://github.com/EvotecIT/PowerBGInfo · https://www.powershellgallery.com/packages/PowerBGInfo | MIT (`PowerBGInfo*/License`) | `PowerBGInfo/` | Referenz: JSON-Config-Ansatz, Builtin-Values-Konzept, Doku-Struktur (CHANGELOG.md, README-Stil). **Kein Code übernommen** |
-| 5 | **Rainmeter** | 4.5.26 | https://www.rainmeter.net/ · https://github.com/rainmeter/rainmeter | GPL-2.0 | `Rainmeter/` | Referenz: Measure→Meter-Architektur, frei platzierte Desktop-Widgets; bewusst **nicht** 1:1 übernommen (zu schwergewichtig) |
-| 6 | **Fachartikel: „Windows Server – Desktop-Infos anzeigen: Tools im Vergleich"** | o. D. (gespeicherte Webseite) | gespeicherte HTML-Datei (IT-Fachartikel-Vergleich BGInfo/DesktopInfo & Co.) | Copyright des jeweiligen Portals – nur Zitat der Erkenntnisse | `Windows Server Desktop-Infos anzeigen_ Tools im Vergleich.html(+_files)` | Marktüberblick alternativer Desktop-Info-Tools; bestätigt Lücke „leichtgewichtiger Akku-/Info-Bar" |
-| 7 | **Conky** (Vergleichsreferenz, Linux) | – | https://github.com/brndnmtthws/conky | GPL-3.0 | *(nicht lokal vorhanden – nur konzeptionelle Referenz)* | Vorbild für Formatstring-Konzept (`{percent}`-Platzhalter in `window.format`) |
+| 1 | **BatteryBar / BatteryBar Pro** (Osiris Development, Chris Thompson) | 3.6.6 (setup, extracted) | http://osirisdevelopment.com/BatteryBar (project discontinued; site partly only reachable via web archive) | Proprietary (Free/Pro) – **no code reused**, feature/UX analysis only | `BatteryBarPro/` | Reference feature set: state model (Discharging/Low/Critical/Charging), theme structure (`theme.xml` with states + colors/fonts), threshold warnings, remaining-time display. Basis for `docs/REQUIREMENTS.md` FR-01…FR-08, FR-12 |
+| 2 | **BGInfo** (Microsoft Sysinternals, Bryce Cogswell/Mark Russinovich) | 4.x | https://learn.microsoft.com/sysinternals/downloads/bginfo | Sysinternals Software License Terms (`BGINfo/BGInfo/Eula.txt`) | `BGINfo/` | Reference "show system data on the desktop"; idea of freely selectable data fields -> provider concept |
+| 3 | **DesktopInfo** (Glenn Delahoy) | 3.23.0 | https://www.glenn.delahoy.com/desktopinfo/ | Freeware (proprietary) | `DesktopInfo/` | Reference: INI configuration, large provider variety, portable-app approach; manual PDF as feature catalogue |
+| 4 | **PowerBGInfo** (EvotecIT, Przemysław Kłys) | branch v2-speedygonzales | https://github.com/EvotecIT/PowerBGInfo · https://www.powershellgallery.com/packages/PowerBGInfo | MIT (`PowerBGInfo*/License`) | `PowerBGInfo/` | Reference: JSON config approach, builtin-values concept, doc structure (CHANGELOG.md, README style). **No code reused** |
+| 5 | **Rainmeter** | 4.5.26 | https://www.rainmeter.net/ · https://github.com/rainmeter/rainmeter | GPL-2.0 | `Rainmeter/` | Reference: measure->meter architecture, freely placed desktop widgets; deliberately **not** adopted 1:1 (too heavyweight) |
+| 6 | **Article: "Windows Server – show desktop info: tools compared"** | n.d. (saved web page) | saved HTML file (IT magazine comparison of BGInfo/DesktopInfo & co.) | Copyright of the respective portal – findings quoted only | `Windows Server Desktop-Infos anzeigen_ Tools im Vergleich.html(+_files)` | Market overview of alternative desktop-info tools; confirms the gap "lightweight battery/info bar" |
+| 7 | **Conky** (comparison reference, Linux) | – | https://github.com/brndnmtthws/conky | GPL-3.0 | *(not stored locally – conceptual reference only)* | Model for the format-string concept (`{percent}` placeholders in `window.format`) |
 
-## Übernahme-Regeln
+## Adoption rules
 
-- Es wurde **kein Fremd-Code** übernommen. BatteryBar OSS ist eine
-  Neuentwicklung; lediglich Funktionsumfang/UX wurden analysiert.
-- `theme.xml`-Struktur von BatteryBar diente als **inspiratives Vorbild**
-  für Zustands-Farben; unsere Umsetzung ist JSON-basiert und eigenständig.
-- Grafiken/Themes aus `Recherchen/` (PNG-Assets der BatteryBar-Themes)
-  sind **proprietär** und dürfen nicht ins Repo kopiert werden.
+- **No third-party code was reused.** BatteryBar OSS is a fresh
+  implementation; only the feature set/UX was analysed.
+- BatteryBar's `theme.xml` structure served as an **inspirational model**
+  for state colors; our implementation is JSON-based and independent.
+- Graphics/themes from `Recherchen/` (PNG assets of the BatteryBar
+  themes) are **proprietary** and must not be copied into the repo.

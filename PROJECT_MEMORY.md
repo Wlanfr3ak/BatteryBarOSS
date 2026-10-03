@@ -1,89 +1,96 @@
-# PROJECT_MEMORY.md – Projektgedächtnis BatteryBar OSS
+# PROJECT_MEMORY.md – BatteryBar OSS project memory
 
-Diese Datei ist das **Gedächtnis des Projekts** (lt. AGENTS.md §8).
-Jede bearbeitende Instanz liest sie zu Beginn und aktualisiert sie bei
-relevanten Entscheidungen/Erkenntnissen.
+This file is the **project's memory** (per AGENTS.md section 8).
+Every working instance reads it at the start and updates it when
+relevant decisions/insights are made.
 
 ---
 
-## Zielbild
+## Vision
 
-Open-Source-Nachbau von „BatteryBar (Pro)" (eingestellt, Osiris Development)
-für Windows 11: eine frei schwebende, always-on-top Akku-Statusleiste.
-Perspektivisch erweiterbar zu einem Conky-/BGInfo-artigen Desktop-Info-Tool
-(weitere Daten-Provider neben Akku: CPU, RAM, Netz, Uptime …).
+Open-source rebuild of "BatteryBar (Pro)" (discontinued, Osiris
+Development) for Windows 11: a floating, always-on-top battery status
+bar. Long-term goal: extensible to a Conky-/BGInfo-style desktop info
+tool (additional data providers beyond battery: CPU, RAM, network,
+uptime, ...).
 
-## Getroffene Entscheidungen
+## Decisions made
 
-| Datum | Entscheidung | Begründung |
+| Date | Decision | Rationale |
 |---|---|---|
-| 2026-10-03 | **Tech-Stack: Python + Tkinter, ausschließlich Standardbibliothek** (ctypes für Win32-Akku-API) | User-Wunsch: minimale Abhängigkeiten; Python 3.14 bereits installiert; nach `git clone` ohne Setup lauffähig. Alternativen .NET/WPF (braucht SDK, nicht installiert) und PowerShell+WPF (unhandlich) verworfen – Entscheidung vom User bestätigt. |
-| 2026-10-03 | Lizenz: **MIT** | Standard für kleine OSS-Tools, maximal permissiv. Kann früh noch geändert werden. |
-| 2026-10-03 | Doku-Sprache **Deutsch**, Code-Kommentare/Identifier **Englisch** | User kommuniziert Deutsch; OSS-Internationalisierung später möglich. |
-| 2026-10-03 | Windows-11-Realität: Deskbands/Taskbar-Toolbars (Original-Ansatz von BatteryBar) existieren unter Win11 nicht mehr → **frei schwebendes Fenster** als Ersatz | `overrideredirect` + `-topmost` + `-transparentcolor` in Tkinter. |
-| 2026-10-03 | Versionierung: SemVer, Single Source = `__version__` in `src/batterybar/__init__.py`; jede Version = 1 Commit mit `vX.Y.Z:`-Präfix | User-Anforderung Nachverfolgbarkeit auf GitHub. |
-| 2026-10-03 | Config-Schichtung: `config/settings.json` (Defaults, committed) ← `config/settings.local.json` (User-Overrides, gitignored) ← `config/secrets.json` (gitignored) | Secrets-Regel + Klon-Kompatibilität ohne lokale Leaks. |
-| 2026-10-03 | `Recherchen/` bleibt lokal (gitignored); Quellen in `docs/RESEARCH.md` | User-Anforderung; Lizenz-/Größengründe. |
-| 2026-10-03 | Click-Through per globalem Hotkey `Strg+Alt+B` umschaltbar (GetAsyncKeyState-Polling, kein RegisterHotKey – Tk sieht WM_HOTKEY sonst nicht); `Strg+Alt+Q` = Beenden | Sonst wäre die Leiste im Durchklick-Modus nicht mehr erreichbar. |
+| 2026-10-03 | **Tech stack: Python + Tkinter, standard library only** (ctypes for the Win32 battery API) | User requirement: minimal dependencies; Python 3.14 already installed; runs without setup after `git clone`. Alternatives .NET/WPF (needs SDK, not installed) and PowerShell+WPF (clunky) rejected – decision confirmed by the user. |
+| 2026-10-03 | License: **MIT** | Standard for small OSS tools, maximally permissive. Can still be changed early. |
+| 2026-10-03 | **Project language: English** (docs, UI, commits, changelog); maintainer communicates in German outside the repo | User decision with v0.2.0: broader OSS reach. |
+| 2026-10-03 | Windows 11 reality: deskbands/taskbar toolbars (BatteryBar's original approach) no longer exist on Win11 → **floating window** as replacement | `overrideredirect` + `-topmost` + `-transparentcolor` in Tkinter. |
+| 2026-10-03 | Versioning: SemVer, single source = `__version__` in `src/batterybar/__init__.py`; every version = 1 commit with `vX.Y.Z:` prefix | User requirement for GitHub traceability. |
+| 2026-10-03 | Config layering: `config/settings.json` (defaults, committed) <- `config/settings.local.json` (user overrides, gitignored) <- `config/secrets.json` (gitignored) | Secrets rule + clone compatibility without local leaks. |
+| 2026-10-03 | `Recherchen/` stays local (gitignored); sources in `docs/RESEARCH.md` | User requirement; licensing/size reasons. |
+| 2026-10-03 | Click-through toggled via global hotkey `Ctrl+Alt+B` (GetAsyncKeyState polling, no RegisterHotKey – Tk would never see WM_HOTKEY otherwise); `Ctrl+Alt+Q` = quit | Otherwise the bar would be unreachable in click-through mode. |
+| 2026-10-03 | Startup toast when `click_through` is loaded from config (v0.1.2) | Prevents silent lockout – user reported unclickable bar after restart. |
+| 2026-10-03 | GitHub remote via **SSH** (`~/.ssh/fabian` key registered on GitHub), branch `main` | User chose SSH over HTTPS+GCM. |
 
-## Umgebungs-Fakten (Entwicklungsmaschine)
+## Environment facts (dev machine)
 
 - Windows 11 (10.0.26100), Git 2.52
-- Python 3.14.8 + 3.13 unter `C:\Program Files\Python314\` / `Python313\`, `py`-Launcher vorhanden
-- Windows PowerShell 5.1 (kein pwsh 7)
-- .NET-Runtimes 8/9/10 vorhanden, **kein .NET SDK** (relevant falls Stack-Wechsel)
-- Repo-Pfad enthält Leerzeichen → Pfade in Skripten immer quoten
+- Python 3.14.8 + 3.13 at `C:\Program Files\Python314\` / `Python313\`, `py` launcher present
+- Windows PowerShell 5.1 (no pwsh 7)
+- .NET runtimes 8/9/10 present, **no .NET SDK** (relevant if the stack ever changes)
+- Repo path contains spaces → always quote paths in scripts
 
-## GitHub / Remote
+## GitHub / remote
 
-- Remote: `git@github.com:Wlanfr3ak/BatteryBarOSS.git` (SSH), Branch `main`
-- GitHub-Account: **Wlanfr3ak**, Git-Autor `Wlanfr3ak
-  <6292882+Wlanfr3ak@users.noreply.github.com>`
-- SSH-Auth: Key `~/.ssh/fabian` (ed25519, bei GitHub hinterlegt am
-  2026-10-03); `~/.ssh/config` enthält `Host github.com` mit
+- Remote: `git@github.com:Wlanfr3ak/BatteryBarOSS.git` (SSH), branch `main`
+- GitHub account: **Wlanfr3ak**, git author `Wlanfr3ak <6292882+Wlanfr3ak@users.noreply.github.com>`
+- SSH auth: key `~/.ssh/fabian` (ed25519, registered on GitHub 2026-10-03);
+  `~/.ssh/config` contains `Host github.com` with
   `IdentityFile ~/.ssh/fabian` + `IdentitiesOnly yes`
-- `gh` CLI nicht installiert; Git Credential Manager 2.6.1 vorhanden
-  (HTTPS-Fallback wäre damit möglich)
+- `gh` CLI not installed; Git Credential Manager 2.6.1 present
+  (HTTPS fallback would work with it)
 
-## Architektur-Stand
+## Architecture status
 
 ```
 src/batterybar/
-  __init__.py    # __version__ (Single Source of Truth)
-  __main__.py    # Entry: DPI-Awareness, Logging, CLI (--selftest), App-Start
+  __init__.py    # __version__ (single source of truth)
+  __main__.py    # entry: DPI awareness, console encoding, logging, CLI (--selftest)
   battery.py     # Win32 GetSystemPowerStatus via ctypes -> BatteryStatus
-  config.py      # JSON-Config: Defaults <- settings.json <- settings.local.json (+ secrets.json)
-  bar_window.py  # Tkinter-Floating-Bar: Canvas, Drag&Drop, Kontextmenü,
-                 # Click-Through, Hotkeys, Warn-Toast, Format-Templates
-run.bat          # Start ohne Konsole (pythonw), setzt PYTHONPATH=src
+  config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
+  bar_window.py  # Tkinter floating bar: canvas, drag & drop, context menu,
+                 # click-through, hotkeys, warning toast, format templates
+run.bat          # launch without console (pythonw), sets PYTHONPATH=src
 config/          # settings.json, secrets.example.json (+ gitignored: local/secrets)
 docs/            # REQUIREMENTS, DEPENDENCIES, RESEARCH
 ```
 
-Datenfluss: `battery.read_status()` → `derive_state()` → Format-String
-(`window.format`, Platzhalter `{percent} {time} {state_text} {state_icon}`)
-→ Canvas-Redraw im `after()`-Intervall.
+Data flow: `battery.read_status()` -> `derive state` -> format string
+(`window.format`, placeholders `{percent} {time} {state_text} {state_icon}`)
+-> canvas redraw in the `after()` interval.
 
-## Offene Punkte / Roadmap (Details: docs/REQUIREMENTS.md §8)
+## Open items / roadmap (details: docs/REQUIREMENTS.md section 8)
 
-- [ ] Weitere Provider (Conky-artig): CPU/RAM via `GetSystemTimes`/
-      `GlobalMemoryStatusEx` (stdlib!), Netz-IP, Uptime, Datum/Zeit
-- [ ] Theme-System (JSON-Themes statt PNG-Themes wie BatteryBar)
-- [ ] Akku-Details via `IOCTL_BATTERY_QUERY_INFORMATION`: Laderate,
-      Verschleiß (FullCharged vs. DesignCapacity), Statistik/History
-- [ ] Verbleibende-Laufzeit-Lernkurve (BatteryBar-Pro-Stil: eigene Schätzung
-      aus Entladehistorie statt Windows-Schätzwert)
-- [ ] Multi-Monitor-/DPI-Feinschliff, abgerundete Ecken (PNG/Alpha)
-- [ ] Optionaler PyInstaller-Einzel-EXE-Build (nur optionales Dev-Tool!)
-- [ ] Auto-Start-Option (Registry Run-Key oder Autostart-Shortcut)
-- [ ] Tests: derzeit `--selftest`; Unit-Tests für config/format sinnvoll
-- [ ] README-Screenshots, englische README-Variante
+- [ ] More providers (Conky-style): CPU/RAM via `GetSystemTimes`/
+      `GlobalMemoryStatusEx` (stdlib!), network IP, uptime, date/time
+- [ ] Theme system (JSON themes instead of BatteryBar's PNG themes)
+- [ ] Battery details via `IOCTL_BATTERY_QUERY_INFORMATION`: charge rate,
+      wear (FullCharged vs. DesignCapacity), statistics/history
+- [ ] Own remaining-time estimate (BatteryBar Pro style: learn from
+      discharge history instead of the Windows estimate)
+- [ ] Multi-monitor/DPI refinements, rounded corners (PNG/alpha)
+- [ ] Optional PyInstaller single-EXE build (optional dev tool only!)
+- [ ] Autostart option (registry Run key or autostart shortcut)
+- [ ] UI translations (de/en) – strings are English since v0.2.0
+- [ ] Tests: currently `--selftest`; unit tests for config/format useful
+- [ ] README screenshots
 
-## Lessons Learned / Fallstricke
+## Lessons learned / pitfalls
 
-- `tk.Menu`-Kontextmenü ist unter einem „durchklickbaren" Fenster
-  unerreichbar → Hotkey-Ausweg ist Pflicht.
-- `SetProcessDpiAwareness(2)` **vor** `tk.Tk()` aufrufen (shcore → user32-Fallback).
-- `winsound` ist Windows-stdlib → Warntöne ohne Extra-Dep möglich.
-- `git config` darf nicht verändert werden (Projektregel) – Zeilenenden über
-  `.gitattributes` geregelt.
+- `tk.Menu` context menu is unreachable under a click-through window
+  → hotkey escape route is mandatory (user hit this in v0.1.2).
+- Call `SetProcessDpiAwareness(2)` **before** `tk.Tk()` (shcore -> user32 fallback).
+- `winsound` is a Windows stdlib module → beeps without extra deps.
+- Windows consoles use cp1252 → reconfigure stdout/stderr to UTF-8 with
+  `errors="replace"` or unicode icons crash printing/logging.
+- Git config must not be modified (project rule) – line endings are
+  handled via `.gitattributes`.
+- The `read`/`edit` file tools refuse gitignored files (e.g.
+  `settings.local.json`) – modify them via `exec`/python instead.

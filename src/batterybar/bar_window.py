@@ -59,7 +59,7 @@ class BarWindow:
             self.root.after(
                 600,
                 lambda: self._toast(
-                    "Durchklick-Modus aktiv – Rückkehr per Strg+Alt+B"
+                    "Click-through mode active – press Ctrl+Alt+B to return"
                 ),
             )
 
@@ -159,23 +159,23 @@ class BarWindow:
         )
         menu.add_separator()
         menu.add_checkbutton(
-            label="Immer im Vordergrund",
+            label="Always on top",
             variable=self._var_topmost,
             command=self._toggle_topmost,
         )
         menu.add_checkbutton(
-            label="Durchklickbar  (Strg+Alt+B)",
+            label="Click-through  (Ctrl+Alt+B)",
             variable=self._var_click,
             command=self._toggle_click_through,
         )
         menu.add_checkbutton(
-            label="Position sperren",
+            label="Lock position",
             variable=self._var_lock,
             command=self._toggle_lock,
         )
         menu.add_separator()
-        menu.add_command(label="Einstellungen neu laden", command=self.reload_settings)
-        menu.add_command(label="Beenden  (Strg+Alt+Q)", command=self.root.destroy)
+        menu.add_command(label="Reload settings", command=self.reload_settings)
+        menu.add_command(label="Exit  (Ctrl+Alt+Q)", command=self.root.destroy)
         self.menu = menu
 
     def _toggle_topmost(self) -> None:
@@ -188,7 +188,7 @@ class BarWindow:
         self._set_click_through(value)
         config.save_local({"window": {"click_through": value}})
         if value:
-            self._toast("Durchklick-Modus aktiv – Rückkehr per Strg+Alt+B")
+            self._toast("Click-through mode active – press Ctrl+Alt+B to return")
 
     def _toggle_lock(self) -> None:
         config.save_local({"window": {"lock_position": self._var_lock.get()}})
@@ -277,9 +277,9 @@ class BarWindow:
     def _check_warning(self, status: battery.BatteryStatus) -> None:
         level = _SEVERITY.get(status.state, 0)
         if level > self._warn_level and self.settings["warnings"]["enabled"]:
-            label = battery.STATE_TEXT_DE.get(status.state, status.state)
+            label = battery.STATE_TEXT.get(status.state, status.state)
             pct = f"{status.percent}%" if status.percent is not None else "?"
-            self._toast(f"Akkustand {label}: {pct}")
+            self._toast(f"Battery {label}: {pct}")
             if self.settings["warnings"]["beep"]:
                 try:
                     winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)

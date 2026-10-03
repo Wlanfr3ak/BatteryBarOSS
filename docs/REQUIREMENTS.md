@@ -1,139 +1,141 @@
-# REQUIREMENTS.md – Anforderungen BatteryBar OSS
+# REQUIREMENTS.md – BatteryBar OSS requirements
 
-Stand: 2026-10-03 · Version des Dokuments: 1.0 · zugehörige App-Version: v0.1.0
+Status: 2026-10-03 · Document version: 1.1 · corresponding app version: v0.2.0
 
 ---
 
-## 1. Ziel & Scope
+## 1. Goal & scope
 
-Nachbau der eingestellten Software **BatteryBar (Pro)** als Open-Source-Tool
-für Windows 11: eine kompakte, frei schwebende Leiste, die den Akkustand auf
-den ersten Blick zeigt. Zweite Zielrichtung: die Leiste soll – inspiriert von
-**Conky** (Linux) und **BGInfo/DesktopInfo** (Windows) – um weitere
-Desktop-Informationen erweiterbar sein.
+Rebuild the discontinued **BatteryBar (Pro)** software as an open-source
+tool for Windows 11: a compact, floating bar that shows the battery level
+at a glance. Second direction: the bar should – inspired by **Conky**
+(Linux) and **BGInfo/DesktopInfo** (Windows) – be extensible with
+additional desktop information.
 
-**Außerhalb des Scopes** (bewusste Abgrenzung):
+**Out of scope** (deliberate boundaries):
 
-- Keine Taskbar-Deskbar-Integration – Deskbands gibt es unter Windows 11
-  nicht mehr (Original-Ansatz von BatteryBar nicht reproduzierbar).
-- Kein Wallpaper-Rendering (Ansatz von BGInfo/PowerBGInfo) – wir zeichnen ein
-  eigenes Live-Fenster, keine Hintergrundbild-Manipulation.
-- Kein Skin-Ökosystem à la Rainmeter (Overkill); stattdessen schlanke
-  JSON-Konfiguration + später optionale JSON-Themes.
+- No taskbar deskbar integration – deskbands no longer exist on
+  Windows 11 (BatteryBar's original approach is not reproducible).
+- No wallpaper rendering (BGInfo/PowerBGInfo's approach) – we draw our
+  own live window, not background image manipulation.
+- No skin ecosystem like Rainmeter (overkill); instead a lean JSON
+  configuration + optional JSON themes later.
 
-## 2. Ausgangslage / Motivation
+## 2. Background / motivation
 
-- BatteryBar wurde als Taskbar-Toolbar (Deskband) installiert; das Projekt
-  (Osiris Development) ist eingestellt, Windows 11 unterstützt keine
-  Deskbands mehr.
-- Bedarf: kleines, ressourcenschonendes, immer sichtbares Akku-Widget ohne
-  Installations- und Dependency-Ballast → Kernprinzip **„clone & run"**.
+- BatteryBar installed as a taskbar toolbar (deskband); the project
+  (Osiris Development) is discontinued and Windows 11 no longer supports
+  deskbands.
+- Requirement: small, resource-friendly, always-visible battery widget
+  without installation and dependency baggage → core principle
+  **"clone & run"**.
 
-## 3. Funktions-Sichtung der Referenz-Tools
+## 3. Feature survey of reference tools
 
-Quellen: `Recherchen/` (lokal, nicht im Git) + `docs/RESEARCH.md`.
+Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 
-| Tool | Relevante Features | Was wir übernehmen |
+| Tool | Relevant features | What we adopt |
 |---|---|---|
-| **BatteryBar (Pro) 3.6.6** | Akku-%, Ladezustand, Restlaufzeit-Schätzung (aus eigener Historie!), Zustands-Themes (Default/Discharging/Low/Critical/Charging), Low-/Critical-Warnungen (Windows-Sounds), Schwellen konfigurierbar, Font/Größe wählbar, Übersetzungen | Zustandsmodell + Schwellen + Farbcodierung, Formatstring-Flexibilität (statt PNG-Themes zunächst Farb-Themes), Warnungen, später: eigene Laufzeit-Schätzung aus Entladehistorie |
-| **BGInfo (Sysinternals)** | Systemdaten (Host, OS, CPU, RAM, IP …) als Desktop-Text, frei wählbare Felder | Idee der konfigurierbaren Daten-Felder (Provider-Konzept) |
-| **DesktopInfo 3.23** | INI-Config, sehr viele Daten-Provider (WMI, Registry, Dateien, Performance-Counter), Seiten/Navigation, Drag-Position, portable EXE | Provider-Registry; Prinzip „Textdatei-Config reicht"; Portabilität |
-| **PowerBGInfo** (PS-Modul) | Wallpaper-Generierung mit konfigurierbaren Werten/Charts, JSON-Export, Builtin-Values | Bestätigt Bedarf an Builtin-Providern; JSON-Config-Ansatz |
-| **Rainmeter 4.5.26** | Skin-/Widget-System, Messwerke (Measures) + Darstellung (Meters), variabel platzierte Fenster | Grobidee „Provider liefert Wert, View zeichnet ihn" – stark vereinfacht |
-| **Conky** (Vergleich, Linux) | Formatstrings mit Variablen (`${battery_percent}`), Skriptbarkeit, minimaler Footprint | Format-Template `{percent}` etc. in `window.format` |
+| **BatteryBar (Pro) 3.6.6** | Battery %, charge state, remaining-time estimate (from own history!), state themes (Default/Discharging/Low/Critical/Charging), low/critical warnings (Windows sounds), configurable thresholds, font/size selection, translations | State model + thresholds + color coding, format-string flexibility (color themes instead of PNG themes initially), warnings, later: own runtime estimate from discharge history |
+| **BGInfo (Sysinternals)** | System data (host, OS, CPU, RAM, IP ...) as desktop text, freely selectable fields | Idea of configurable data fields (provider concept) |
+| **DesktopInfo 3.23** | INI config, very many data providers (WMI, registry, files, performance counters), pages/navigation, drag position, portable EXE | Provider registry; principle "a text config file is enough"; portability |
+| **PowerBGInfo** (PS module) | Wallpaper generation with configurable values/charts, JSON export, builtin values | Confirms need for builtin providers; JSON config approach |
+| **Rainmeter 4.5.26** | Skin/widget system, measures + meters, freely placed windows | Rough idea "provider supplies value, view renders it" – heavily simplified |
+| **Conky** (comparison, Linux) | Format strings with variables (`${battery_percent}`), scriptability, minimal footprint | Format template `{percent}` etc. in `window.format` |
 
-**Gemeinsamer Nenner:** Provider (Datenquelle) → Aufbereitung/Formatierung →
-leichtgewichtige Desktop-Anzeige. Genau dieses Muster legt unsere Architektur
-an (`battery.py` als Provider, `bar_window.py` als View).
+**Common denominator:** provider (data source) -> preparation/formatting
+-> lightweight desktop display. Exactly this pattern is our architecture
+(`battery.py` as provider, `bar_window.py` as view).
 
-## 4. Funktionale Anforderungen (MoSCoW)
+## 4. Functional requirements (MoSCoW)
 
-### Muss (MVP – mit v0.1.0 umgesetzt)
+### Must (MVP – implemented with v0.1.0)
 
-| ID | Anforderung | Status |
+| ID | Requirement | Status |
 |---|---|---|
-| FR-01 | Frei schwebende, rahmenlose, always-on-top Leiste | ✅ v0.1.0 |
-| FR-02 | Akkustand in % (Win32 `GetSystemPowerStatus`) | ✅ v0.1.0 |
-| FR-03 | Ladezustände: Lädt / Entlädt / Voll / Niedrig / Kritisch / Kein Akku, farbcodiert | ✅ v0.1.0 |
-| FR-04 | Restlaufzeit-Anzeige (Windows-Schätzwert, „—" wenn unbekannt) | ✅ v0.1.0 |
-| FR-05 | Frei positionierbar per Drag & Drop, Position persistent | ✅ v0.1.0 |
-| FR-06 | Konfiguration per JSON (Farben, Schwellen, Format, Intervall, Startposition) | ✅ v0.1.0 |
-| FR-07 | Kontextmenü: Vordergrund, Click-Through, Positionssperre, Reload, Beenden | ✅ v0.1.0 |
-| FR-08 | Warnung bei Low-/Critical-Schwelle (Toast + optional Beep) | ✅ v0.1.0 |
-| FR-09 | Keine externen Abhängigkeiten (nur Python-stdlib) | ✅ v0.1.0 |
-| FR-10 | Start ohne Konsole (`run.bat` / `pythonw`), Logging in Datei | ✅ v0.1.0 |
+| FR-01 | Floating, frameless, always-on-top bar | ✅ v0.1.0 |
+| FR-02 | Battery level in % (Win32 `GetSystemPowerStatus`) | ✅ v0.1.0 |
+| FR-03 | Charge states: charging / discharging / full / low / critical / no battery, color-coded | ✅ v0.1.0 |
+| FR-04 | Remaining-time display (Windows estimate, "—" when unknown) | ✅ v0.1.0 |
+| FR-05 | Freely positionable via drag & drop, position persisted | ✅ v0.1.0 |
+| FR-06 | JSON configuration (colors, thresholds, format, interval, start position) | ✅ v0.1.0 |
+| FR-07 | Context menu: always-on-top, click-through, position lock, reload, exit | ✅ v0.1.0 |
+| FR-08 | Warning on low/critical threshold (toast + optional beep) | ✅ v0.1.0 |
+| FR-09 | No external dependencies (Python stdlib only) | ✅ v0.1.0 |
+| FR-10 | Start without console (`run.bat` / `pythonw`), file logging | ✅ v0.1.0 |
 
-### Sollte (nächste Releases)
+### Should (next releases)
 
-| ID | Anforderung |
+| ID | Requirement |
 |---|---|
-| FR-11 | Provider-Architektur ausbauen: weitere Datenquellen via stdlib (`GetSystemTimes` CPU, `GlobalMemoryStatusEx` RAM, Uptime, Datum/Zeit, IP) – Vorbild DesktopInfo/Conky |
-| FR-12 | Eigene Laufzeit-Schätzung aus Entladehistorie (BatteryBar-Pro-Feature: Windows-Schätzung ist oft ungenau); History persistieren |
-| FR-13 | Akku-Gesundheit: Design- vs. Vollladekapazität, Laderate (`IOCTL_BATTERY_QUERY_INFORMATION` / `CallNtPowerInformation`) |
-| FR-14 | Theme-System: JSON-Themes (Farbsets), Theme-Wechsel im Kontextmenü |
-| FR-15 | Autostart-Option (Task/Registry Run-Key, vom Menü aus (de)aktivierbar) |
-| FR-16 | Multi-Monitor-Bewusstsein (Monitorwahl, korrekte Eckverankerung) |
-| FR-17 | Mehrere/Leiste zusätzliche Zeilen oder Blöcke für Provider-Werte |
-| FR-18 | Konfigurierbare Hotkeys |
+| FR-11 | Extend provider architecture: more data sources via stdlib (`GetSystemTimes` CPU, `GlobalMemoryStatusEx` RAM, uptime, date/time, IP) – modelled on DesktopInfo/Conky |
+| FR-12 | Own runtime estimate from discharge history (BatteryBar Pro feature: the Windows estimate is often inaccurate); persist history |
+| FR-13 | Battery health: design vs. full-charge capacity, charge rate (`IOCTL_BATTERY_QUERY_INFORMATION` / `CallNtPowerInformation`) |
+| FR-14 | Theme system: JSON themes (color sets), theme switch in the context menu |
+| FR-15 | Autostart option (task/registry Run key, toggleable from the menu) |
+| FR-16 | Multi-monitor awareness (monitor choice, correct corner anchoring) |
+| FR-17 | Additional rows/blocks in the bar for provider values |
+| FR-18 | Configurable hotkeys |
 
-### Könnte (später / optional)
+### Could (later / optional)
 
-| ID | Anforderung |
+| ID | Requirement |
 |---|---|
-| FR-19 | Optionaler Einzel-EXE-Build via PyInstaller (nur Dev-Tool, keine Laufzeit-Dep) |
-| FR-20 | Runde Ecken / Icons via PNG-Assets mit Alpha (Chroma-Alternative) |
-| FR-21 | Tooltip mit Detailinfos (Kapazität mWh, Health, Spannung) |
-| FR-22 | Mini-Verlaufsgraph (Entladekurve) im Popup |
-| FR-23 | Übersetzungen (de/en) für UI-Texte |
-| FR-24 | Einstellungs-Dialog (GUI statt JSON-Edit) |
+| FR-19 | Optional single-EXE build via PyInstaller (dev tool only, no runtime dep) |
+| FR-20 | Rounded corners / icons via PNG assets with alpha (chroma alternative) |
+| FR-21 | Tooltip with details (capacity mWh, health, voltage) |
+| FR-22 | Mini history graph (discharge curve) in a popup |
+| FR-23 | UI translations (de/en) – English is the default since v0.2.0 |
+| FR-24 | Settings dialog (GUI instead of JSON editing) |
 
-### Won't (abgelehnt)
+### Won't (rejected)
 
-| ID | Entscheidung | Grund |
+| ID | Decision | Reason |
 |---|---|---|
-| W-01 | Taskbar-Deskband | unter Windows 11 technisch nicht möglich |
-| W-02 | Wallpaper-Rendering (BGInfo-Ansatz) | anderes Konzept; Live-Fenster gewählt |
-| W-03 | Skin-Engine/Plugin-API à la Rainmeter | Komplexität vs. Nutzen; JSON reicht |
+| W-01 | Taskbar deskband | technically impossible on Windows 11 |
+| W-02 | Wallpaper rendering (BGInfo approach) | different concept; live window chosen |
+| W-03 | Skin engine/plugin API like Rainmeter | complexity vs. benefit; JSON suffices |
 
-## 5. Nicht-funktionale Anforderungen
+## 5. Non-functional requirements
 
-| ID | Anforderung |
+| ID | Requirement |
 |---|---|
-| NFR-01 | **Zero-Dependency-Laufzeit**: nach `git clone` + installiertem Python ≥ 3.11 startet `run.bat` ohne weitere Schritte |
-| NFR-02 | Geringer Footprint: Idle-CPU ~0 % (Intervall-Polling ≥ 500 ms), RAM < ~50 MB (gemessen v0.1.0: ~41 MB inkl. Python/Tkinter) |
-| NFR-03 | Windows 10/11; DPI-skalierungsfest |
-| NFR-04 | Secrets niemals im Repo (`config/secrets.json`, gitignored) |
-| NFR-05 | Dokumentationspflicht: Changelog, README, Dependencies-Tabelle bei jeder Änderung (AGENTS.md) |
-| NFR-06 | Jede Version ein Commit `vX.Y.Z` mit Changelog-Body (GitHub-Nachverfolgbarkeit) |
-| NFR-07 | Repo ist self-contained: keine lokalen Pfade/Artefakte nötig, Klon → weiterarbeiten möglich |
-| NFR-08 | Keine Admin-Rechte für Normalbetrieb |
+| NFR-01 | **Zero-dependency runtime**: after `git clone` + installed Python >= 3.11, `run.bat` starts without further steps |
+| NFR-02 | Small footprint: idle CPU ~0% (interval polling >= 500 ms), RAM < ~50 MB (measured v0.1.0: ~41 MB incl. Python/Tkinter) |
+| NFR-03 | Windows 10/11; DPI-scaling safe |
+| NFR-04 | Secrets never in the repo (`config/secrets.json`, gitignored) |
+| NFR-05 | Documentation requirement: changelog, README, dependencies table with every change (AGENTS.md) |
+| NFR-06 | Every version one commit `vX.Y.Z` with changelog body (GitHub traceability) |
+| NFR-07 | Repo is self-contained: no local paths/artifacts needed, clone -> continue working |
+| NFR-08 | No admin rights required for normal operation |
 
-## 6. Akzeptanzkriterien MVP (v0.1.0)
+## 6. MVP acceptance criteria (v0.1.0)
 
-- [x] `run.bat` startet die Leiste ohne Konsole; sie zeigt aktuellen Akku-%
-- [x] Zustandsfarben wechseln korrekt (Laden/Entladen/Niedrig/Kritisch)
-- [x] Leiste ist verschiebbar; nach Neustart an alter Position
-- [x] `--selftest` läuft fehlerfrei (Config + Akku gelesen)
-- [x] `python -m compileall src` ohne Fehler
-- [x] `git status` zeigt keine Recherche-Rohdateien/Secrets als getrackt
+- [x] `run.bat` starts the bar without a console; it shows the current battery %
+- [x] State colors switch correctly (charging/discharging/low/critical)
+- [x] Bar is draggable; restarts return to the old position
+- [x] `--selftest` runs cleanly (config + battery read)
+- [x] `python -m compileall src` without errors
+- [x] `git status` shows no research raw files/secrets as tracked
 
-## 7. Datenquellen (technisch)
+## 7. Data sources (technical)
 
-| Daten | Quelle | Zugriff |
+| Data | Source | Access |
 |---|---|---|
-| Akku-%, Ladezustand, Restsekunden | Win32 `GetSystemPowerStatus` | ctypes (kernel32) |
-| (später) Akku-Details, Health | `IOCTL_BATTERY_QUERY_INFORMATION`, `CallNtPowerInformation` | ctypes (setupapi/powrprof) |
-| (später) CPU/RAM | `GetSystemTimes`, `GlobalMemoryStatusEx` | ctypes (kernel32) |
-| (später) IP/Netz | `GetAdaptersAddresses` o. ä. | ctypes (iphlpapi) |
-| Config | JSON-Dateien `config/` | stdlib json |
+| Battery %, charge state, remaining seconds | Win32 `GetSystemPowerStatus` | ctypes (kernel32) |
+| (later) Battery details, health | `IOCTL_BATTERY_QUERY_INFORMATION`, `CallNtPowerInformation` | ctypes (setupapi/powrprof) |
+| (later) CPU/RAM | `GetSystemTimes`, `GlobalMemoryStatusEx` | ctypes (kernel32) |
+| (later) IP/network | `GetAdaptersAddresses` or similar | ctypes (iphlpapi) |
+| Config | JSON files `config/` | stdlib json |
 | Beep | `winsound` | stdlib |
 
-## 8. Roadmap (grobe Zielbilder)
+## 8. Roadmap (rough targets)
 
-- **v0.1.0** ✅ MVP: schwebende Akku-Leiste, Config, Warnungen, Doku-Gerüst
-- **v0.2.x**: Provider-Framework + CPU/RAM/Zeit-Felder; Formatstring mit
-  beliebigen Providern; FR-11, FR-17
-- **v0.3.x**: Akku-Details & eigene Laufzeitschätzung (FR-12, FR-13), Tooltip
-- **v0.4.x**: JSON-Themes + Theme-Menü (FR-14), Autostart (FR-15)
-- **v0.5.x**: Multi-Monitor (FR-16), konfigurierbare Hotkeys (FR-18)
-- **v1.0.0**: Feature-Parität mit BatteryBar Pro Kernfunktionen + Stabilität
+- **v0.1.x** ✅ MVP: floating battery bar, config, warnings, doc skeleton
+- **v0.2.0** ✅ Project language switched to English (docs + UI)
+- **v0.3.x**: Provider framework + CPU/RAM/time fields; format string with
+  arbitrary providers; FR-11, FR-17
+- **v0.4.x**: Battery details & own runtime estimate (FR-12, FR-13), tooltip
+- **v0.5.x**: JSON themes + theme menu (FR-14), autostart (FR-15)
+- **v0.6.x**: Multi-monitor (FR-16), configurable hotkeys (FR-18)
+- **v1.0.0**: Feature parity with BatteryBar Pro core functions + stability

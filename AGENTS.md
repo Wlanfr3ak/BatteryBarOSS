@@ -1,125 +1,126 @@
-# AGENTS.md – Projektregeln für BatteryBar OSS
+# AGENTS.md – Project rules for BatteryBar OSS
 
-Diese Datei ist die **verbindliche Regelbasis** für alle Beiträge an diesem
-Projekt – egal ob von Menschen oder Coding-Agenten (z. B. Devin).
-Lies zu Beginn jeder Session zuerst diese Datei und `PROJECT_MEMORY.md`.
+This file is the **binding rulebook** for all contributions to this project —
+whether by humans or coding agents (e.g. Devin).
+At the start of every session, read this file and `PROJECT_MEMORY.md` first.
 
-> Projekt: Open-Source-Ersatz für das eingestellte „BatteryBar (Pro)" –
-> eine frei schwebende Akku-Statusleiste für Windows 11, erweiterbar zu einem
-> Conky/BGInfo-artigen Desktop-Info-Widget. Tech-Stack: **Python ≥ 3.11,
-> ausschließlich Standardbibliothek** (Tkinter + ctypes/Win32).
+> Project: open-source replacement for the discontinued "BatteryBar (Pro)" —
+> a floating battery status bar for Windows 11, extensible towards a
+> Conky/BGInfo-style desktop info widget. Tech stack: **Python >= 3.11,
+> standard library only** (Tkinter + ctypes/Win32).
 
 ---
 
-## 1. Versionierung (SemVer)
+## 1. Versioning (SemVer)
 
-- Es gilt [Semantic Versioning](https://semver.org/lang/de/): `MAJOR.MINOR.PATCH`.
-- **Jede Änderung** am Projekt erhöht die Versionsnummer – mindestens `PATCH`.
-  - `PATCH`: Bugfixes, Doku-Korrekturen ohne Verhaltensänderung
-  - `MINOR`: neue Features, rückwärtskompatibel
-  - `MAJOR`: Breaking Changes (Config-Format, API, Verhalten)
-- **Single Source of Truth** für die Version: `__version__` in
-  `src/batterybar/__init__.py`. Kein zweiter Ort darf eine Versionsnummer
-  hartkodieren (außer CHANGELOG.md als Historie).
-- Aktueller Stand: siehe `src/batterybar/__init__.py` und `CHANGELOG.md`.
+- [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
+- **Every change** to the project bumps the version — at least `PATCH`.
+  - `PATCH`: bugfixes, doc fixes without behaviour changes
+  - `MINOR`: new features, backwards compatible
+  - `MAJOR`: breaking changes (config format, API, behaviour)
+- **Single source of truth** for the version: `__version__` in
+  `src/batterybar/__init__.py`. No other location may hardcode a version
+  number (except CHANGELOG.md as history).
+- Current version: see `src/batterybar/__init__.py` and `CHANGELOG.md`.
 
-## 2. Changelog-Pflicht
+## 2. Changelog requirement
 
-- Jede Änderung wird **ausführlich** in `CHANGELOG.md` dokumentiert
-  (Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), deutsch).
-- Pro Version die Kategorien: `Hinzugefügt`, `Geändert`, `Veraltet`,
-  `Entfernt`, `Behoben`, `Sicherheit`.
-- Der Changelog-Eintrag beschreibt das **Warum** und das **Was**, nicht nur
-  Dateinamen.
+- Every change is documented **in detail** in `CHANGELOG.md`
+  (format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), English).
+- Per version use the categories: `Added`, `Changed`, `Deprecated`,
+  `Removed`, `Fixed`, `Security`.
+- Changelog entries describe the **why** and the **what**, not just file names.
 
-## 3. Commits & Git-Historie
+## 3. Commits & git history
 
-- **Jede Versionserhöhung = ein Commit** mit dem Muster
-  `v<version>: <Kurzbeschreibung>` und dem vollständigen Changelog-Eintrag im
-  Commit-Body. So bleibt auf GitHub alles nachverfolgbar.
-- Keine Secrets committen (siehe §5). Keine Recherche-Rohdateien (§6).
-- Kein `--force`-Push, kein Umschreiben der Historie, kein Ändern der
-  Git-Config.
+- **Every version bump = one commit** following the pattern
+  `v<version>: <short description>` with the full changelog entry in the
+  commit body. This keeps everything traceable on GitHub.
+- Commit messages are written in **English**.
+- Never commit secrets (see section 5). Never commit research raw files (section 6).
+- No `--force` push, no history rewriting, no changes to git config.
 
-## 4. Abhängigkeiten – Philosophie & Pflichten
+## 4. Dependencies – philosophy & duties
 
-- **Grundsatz: so wenig Abhängigkeiten wie möglich.** Ziel ist, dass ein Nutzer
-  nach `git clone` nur `run.bat` starten muss.
-- Laufzeit: **nur Python-Standardbibliothek**. `pip install` darf für die
-  Laufzeit nicht nötig sein.
-- Neue externe Abhängigkeit nur mit: (a) schriftlicher Begründung im
-  Changelog, (b) Lizenzprüfung (nur OSS-kompatible Lizenzen), (c) Eintrag in
-  `docs/DEPENDENCIES.md`.
-- `docs/DEPENDENCIES.md` enthält die **verbindliche Tabelle** aller
-  Abhängigkeiten: Name, Version, Zweck, Quelle (URL), Lizenz,
-  **Installationsanleitung**. Die Tabelle wird bei jeder Änderung
-  mitgepflegt.
-- Optionale Werkzeuge (z. B. PyInstaller zum EXE-Bau) werden als *optional*
-  markiert und sind nie Laufzeitvoraussetzung.
+- **Principle: as few dependencies as possible.** Goal: a user only has to
+  run `run.bat` after `git clone`.
+- Runtime: **Python standard library only**. `pip install` must never be
+  required at runtime.
+- A new external dependency requires: (a) a written justification in the
+  changelog, (b) a license check (OSS-compatible licenses only), (c) an
+  entry in `docs/DEPENDENCIES.md`.
+- `docs/DEPENDENCIES.md` contains the **authoritative table** of all
+  dependencies: name, version, purpose, source (URL), license,
+  **installation instructions**. Keep the table updated with every change.
+- Optional tools (e.g. PyInstaller for EXE builds) are marked *optional*
+  and are never a runtime requirement.
 
-## 5. Secrets & Konfiguration
+## 5. Secrets & configuration
 
-- Secrets, Keys, Tokens etc. gehören **ausschließlich** in
-  `config/secrets.json` – diese Datei ist in `.gitignore` und wird **niemals**
+- Secrets, keys, tokens etc. belong **exclusively** in
+  `config/secrets.json` — that file is in `.gitignore` and is **never**
   committed.
-- `config/secrets.example.json` ist die committed Vorlage (Platzhalter statt
-  echter Werte).
-- Benutzerdefinierte Einstellungen: `config/settings.local.json`
-  (gitignored) überlagert `config/settings.json` (committed Defaults).
-- Vor jedem Commit prüfen, dass keine Secrets im Diff sind.
+- `config/secrets.example.json` is the committed template (placeholders
+  instead of real values).
+- User-specific settings: `config/settings.local.json`
+  (gitignored) overrides `config/settings.json` (committed defaults).
+- Before every commit, verify no secrets are in the diff.
 
-## 6. Recherche-Material
+## 6. Research material
 
-- Der Ordner `Recherchen/` enthält Rohdateien (Installer, gespeicherte
-  Webseiten, Fremd-Binaries). Er ist in `.gitignore` und wird **nicht**
-  committed – Lizenz- und Größengründe.
-- Stattdessen werden alle Quellen in **`docs/RESEARCH.md`** benannt:
-  Tool, Version, Bezugsquelle (URL), Lizenz, was daraus übernommen wurde.
+- The `Recherchen/` folder contains raw files (installers, saved web pages,
+  third-party binaries). It is in `.gitignore` and is **not** committed —
+  for licensing and size reasons.
+- Instead, all sources are listed in **`docs/RESEARCH.md`**: tool, version,
+  source URL, license, and what was derived from it.
 
-## 7. README & Dokumentation
+## 7. README & documentation
 
-- `README.md` wird **bei jeder nutzerrelevanten Änderung** mitgepflegt
-  (Features, Installation, Konfiguration, Screenshots).
-- Dokumentationsstruktur:
-  - `README.md` – Einstieg, Installation, Nutzung, Konfiguration
-  - `CHANGELOG.md` – Versionshistorie
-  - `docs/REQUIREMENTS.md` – Anforderungen (Funktions-Sichtung, MoSCoW)
-  - `docs/DEPENDENCIES.md` – Abhängigkeiten, Quellen, Lizenzen, Installation
-  - `docs/RESEARCH.md` – Recherche-Quellen
-  - `PROJECT_MEMORY.md` – Projektgedächtnis (§8)
-- Sprache: Doku auf **Deutsch**, Code-Bezeichner und Kommentare auf Englisch.
-  (README kann später eine englische Variante bekommen.)
+- `README.md` is maintained **with every user-facing change**
+  (features, installation, configuration, screenshots).
+- Documentation structure:
+  - `README.md` – getting started, installation, usage, configuration
+  - `CHANGELOG.md` – version history
+  - `docs/REQUIREMENTS.md` – requirements (feature survey, MoSCoW)
+  - `docs/DEPENDENCIES.md` – dependencies, sources, licenses, installation
+  - `docs/RESEARCH.md` – research sources
+  - `PROJECT_MEMORY.md` – project memory (section 8)
+- Language: **English** for all documentation, code identifiers, comments,
+  UI strings, changelog entries and commit messages.
+  (Switched to English with v0.2.0 — the maintainer may still communicate
+  in German outside the repository.)
 
-## 8. Projektgedächtnis
+## 8. Project memory
 
-- `PROJECT_MEMORY.md` wird von jeder bearbeitenden Instanz gepflegt:
-  getroffene Architektur-Entscheidungen, Umgebungs-Fakten, offene Punkte,
-  Lessons Learned. So kann nach einem frischen Clone jede(r) nahtlos
-  weiterarbeiten.
+- `PROJECT_MEMORY.md` is maintained by every working instance:
+  architecture decisions, environment facts, open items, lessons learned.
+  This allows seamless continuation after a fresh clone.
 
-## 9. Klon-/Weitergabe-Kompatibilität
+## 9. Clone / distribution compatibility
 
-- Kein lokaler Zustand im Repo: keine absoluten Pfade, keine
-  Maschinen-spezifischen Einstellungen, keine generierten Dateien.
-- Alles Nötige zur Weiterentwicklung ist im Repo: Doku, Quellen, Launcher.
-- Plattform: Windows 10/11 primär; Python-Versionen laut `docs/DEPENDENCIES.md`.
+- No local state in the repo: no absolute paths, no machine-specific
+  settings, no generated files.
+- Everything needed to continue development is in the repo: docs, sources,
+  launchers.
+- Platform: Windows 10/11 primarily; Python versions per
+  `docs/DEPENDENCIES.md`.
 
-## 10. Code-Konventionen
+## 10. Code conventions
 
-- Python ≥ 3.11, nur Standardbibliothek; `from __future__ import annotations`.
-- Kompakter, idiomatischer Code; keine unnötigen Kommentare, keine
-  Kommentar-Löschungen.
-- Fehlerbehandlung an sinnvollen Grenzen (Win32-Aufrufe, Config-I/O), nicht
-  jede Zeile in try/except.
-- Verifikation vor jedem Commit:
-  `python -m compileall -q src` und `python -m batterybar --selftest`
-  (mit `PYTHONPATH=src`).
-- Security: keine Befehlsausführung aus Config-Daten heraus, keine Secrets in
-  Logs, Fenster/Canvas-Eingaben validieren.
+- Python >= 3.11, standard library only; `from __future__ import annotations`.
+- Compact, idiomatic code; no unnecessary comments; never delete existing
+  comments.
+- Error handling at sensible boundaries (Win32 calls, config I/O), not
+  try/except on every line.
+- Verification before every commit:
+  `python -m compileall -q src` and `python -m batterybar --selftest`
+  (with `PYTHONPATH=src`).
+- Security: no command execution from config data, no secrets in logs,
+  validate window/canvas input.
 
-## 11. Lizenz
+## 11. License
 
-- Projekt-Lizenz: **MIT** (siehe `LICENSE`).
-- Fremde Ressourcen (Icons, Code-Snippets, Themes) nur mit OSS-kompatibler
-  Lizenz und nur mit Quellen-/Lizenzvermerk in `docs/DEPENDENCIES.md` bzw.
-  `docs/RESEARCH.md`.
+- Project license: **MIT** (see `LICENSE`).
+- Third-party resources (icons, code snippets, themes) only with an
+  OSS-compatible license and only with a source/license note in
+  `docs/DEPENDENCIES.md` or `docs/RESEARCH.md`.
