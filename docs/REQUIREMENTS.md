@@ -74,7 +74,7 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 | FR-13 | Battery health: design vs. full-charge capacity, charge rate — **partially done v0.4.0**: design/full capacity, cycle count, serial, wear % via `root\wmi` classes (IOCTL path investigated, not enumerable on dev HW); still open: charge rate, statistics |
 | FR-13a | Vendor BIOS battery-management mode via explicit firmware marker (not inferred from battery values) — **v0.4.0 for HP**: `tools/read_bios_battery_mode.bat` reads `root\hp\instrumentedbios` `HP_BIOSSetting` elevated, caches to `hp_bios.local.json`; shown in `health` mode as `BHM:` |
 | FR-14 | Theme system: JSON themes (color sets), theme switch in the context menu |
-| FR-15 | Autostart option (task/registry Run key, toggleable from the menu) |
+| FR-15 | Autostart option (task/registry Run key, toggleable from the menu) | ✅ v0.6.0 — HKCU Run key + "Start with Windows" menu toggle |
 | FR-16 | Multi-monitor awareness (monitor choice, correct corner anchoring) |
 | FR-17 | Additional rows/blocks in the bar for provider values |
 | FR-18 | Configurable hotkeys |
@@ -83,7 +83,7 @@ Sources: `Recherchen/` (local, not in git) + `docs/RESEARCH.md`.
 
 | ID | Requirement |
 |---|---|
-| FR-19 | Optional single-EXE build via PyInstaller (dev tool only, no runtime dep) |
+| FR-19 | Optional single-EXE build via PyInstaller (dev tool only, no runtime dep) | ✅ v0.6.0 — `tools\build_exe.bat` → `dist\BatteryBarOSS.exe`; plus Inno Setup installer `tools\build_installer.bat` |
 | FR-20 | Rounded corners / icons via PNG assets with alpha (chroma alternative) |
 | FR-21 | Tooltip with details (capacity mWh, health, voltage) | ✅ v0.5.0 — hover tooltip with all details incl. estimate source |
 | FR-25 | Resizable bar (edge drag) | ✅ v0.5.0 — right/bottom edge + corner grips, persisted size, "Reset size" menu entry |

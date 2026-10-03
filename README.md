@@ -21,7 +21,7 @@ battery indicator.*
 
 ---
 
-## Features (v0.5.0)
+## Features (v0.6.0)
 
 - Floating, frameless, transparent status bar (always-on-top)
 - Battery level in %, charge state (Charging/Discharging/Full/Low/Critical)
@@ -42,6 +42,10 @@ battery indicator.*
   cycles, voltage, estimate source) after ~400 ms on the bar
 - **Resizable**: drag the right/bottom edge or the corner; the size is
   remembered, "Reset size" restores the default
+- **Autostart**: "Start with Windows" in the context menu (per-user
+  Run key, no admin)
+- **Windows installer**: `setup.exe` via Inno Setup — no Python needed,
+  optional autostart + uninstaller (see below)
 - Color-coded fill per state (configurable)
 - Freely draggable – position is remembered
 - Context menu (right click): always-on-top, click-through mode,
@@ -66,14 +70,31 @@ Details and installation instructions: [docs/DEPENDENCIES.md](docs/DEPENDENCIES.
 
 ## Installation & start
 
+### Option A — installer (no Python needed)
+
+Build once (requires PyInstaller + Inno Setup, dev tools only):
+
+```bat
+tools\build_installer.bat
+```
+
+Then run `installer\Output\BatteryBarOSS-Setup-X.Y.Z.exe`: installs to
+`%LOCALAPPDATA%\Programs\BatteryBarOSS` (per-user, no UAC), offers an
+autostart checkbox and a start-menu entry. Uninstall via Windows
+"Apps". User data (settings, stats, logs) lives in
+`%LOCALAPPDATA%\BatteryBarOSS\`.
+
+### Option B — from source
+
 ```bat
 git clone https://github.com/Wlanfr3ak/BatteryBarOSS.git
 cd BatteryBarOSS
 run.bat
 ```
 
-`run.bat` starts the bar without a console window (`pythonw`). For debugging
-with a visible console:
+`run.bat` starts the bar without a console window (`pythonw`).
+`BatteryBarOSS.pyw` (repo root) does the same by double-click and is
+used for the autostart entry. For debugging with a visible console:
 
 ```bat
 set PYTHONPATH=%CD%\src
@@ -101,7 +122,7 @@ Key options (excerpt, full reference in `settings.json`):
 
 | Key | Default | Description |
 |---|---|---|
-| `window.width` / `window.height` | `220` / `28` | Bar size (px) |
+| `window.width` / `window.height` | `220` / `28` | Bar size (px); also resizable by edge drag |
 | `window.format` | `{state_icon} {percent}% · {time}` | Display template. Placeholders: `{percent}`, `{time}`, `{rate}`, `{capacity}`, `{state}`, `{state_text}`, `{state_icon}`, `{health}`, `{wear}`, `{cycles}`, `{design_wh}`, `{full_wh}`, `{machine}`, `{bhm}` |
 | `window.display_mode` | `default` | `default` uses `format`; `time`/`percent`/`rate`/`capacity`/`health` show a single field — cycled by left-click |
 | `estimation.soft_min_percent` | `5.0` | Reserve floor: time counts down to this %, not to real 0 % |

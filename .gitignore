@@ -22,9 +22,10 @@ __pycache__/
 .venv/
 venv/
 
-# --- Build artifacts (e.g. PyInstaller) ---
+# --- Build artifacts (PyInstaller, Inno Setup output) ---
 build/
 dist/
+installer/Output/
 *.spec
 
 # --- Logs & runtime data ---

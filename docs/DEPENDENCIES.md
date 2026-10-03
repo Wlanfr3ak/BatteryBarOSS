@@ -30,7 +30,8 @@ Status: 2026-10-03 (v0.4.0)
 
 | # | Tool | Version | Purpose | Source | License | Installation |
 |---|---|---|---|---|---|---|
-| 1 | **PyInstaller** | >= 6.x (optional, not in use yet) | Building a single EXE for users without Python | https://pyinstaller.org/ | GPL-2.0 **with** [bootloader exception](https://pyinstaller.org/en/stable/license.html) (compiled outputs freely usable) | `pip install pyinstaller` – for maintainer releases only; end users then need no Python at all |
+| 1 | **PyInstaller** | 6.22.2 (in use since v0.6.0) | Building `dist\BatteryBarOSS.exe` for users without Python (`tools\build_exe.bat`) | https://pyinstaller.org/ | GPL-2.0 **with** [bootloader exception](https://pyinstaller.org/en/stable/license.html) (compiled outputs freely usable) | `pip install pyinstaller` – for maintainer releases only; end users then need no Python at all |
+| 2 | **Inno Setup** | 6.7.3 (in use since v0.6.0) | Compiling `installer\setup.iss` into `BatteryBarOSS-Setup-X.Y.Z.exe` (`tools\build_installer.bat`) | https://jrsoftware.org/isinfo.php | [Inno Setup License](https://jrsoftware.org/files/is/license.txt) (free for any use, may be installed/used without fee) | `winget install JRSoftware.InnoSetup` – maintainer build only |
 
 ## 4. Third-party resources
 

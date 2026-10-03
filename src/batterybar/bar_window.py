@@ -7,7 +7,15 @@ import time
 import tkinter as tk
 import winsound
 
-from . import __app_name__, __version__, battery, config, estimate, sysinfo
+from . import (
+    __app_name__,
+    __version__,
+    autostart,
+    battery,
+    config,
+    estimate,
+    sysinfo,
+)
 
 log = logging.getLogger(__name__)
 
@@ -349,6 +357,7 @@ class BarWindow:
         self._var_topmost = tk.BooleanVar(value=bool(w["always_on_top"]))
         self._var_click = tk.BooleanVar(value=bool(w["click_through"]))
         self._var_lock = tk.BooleanVar(value=bool(w["lock_position"]))
+        self._var_autostart = tk.BooleanVar(value=autostart.is_enabled())
 
         menu = tk.Menu(self.root, tearoff=0)
         menu.add_command(
@@ -375,6 +384,11 @@ class BarWindow:
             variable=self._var_lock,
             command=self._toggle_lock,
         )
+        menu.add_checkbutton(
+            label="Start with Windows",
+            variable=self._var_autostart,
+            command=self._toggle_autostart,
+        )
         menu.add_separator()
         menu.add_command(
             label=f"Reset size ({config.DEFAULT_SETTINGS['window']['width']}×"
@@ -399,6 +413,17 @@ class BarWindow:
 
     def _toggle_lock(self) -> None:
         config.save_local({"window": {"lock_position": self._var_lock.get()}})
+
+    def _toggle_autostart(self) -> None:
+        try:
+            if self._var_autostart.get():
+                autostart.enable()
+            else:
+                autostart.disable()
+        except OSError:
+            log.exception("autostart toggle failed")
+            self._var_autostart.set(autostart.is_enabled())
+            self._toast("Could not change autostart entry")
 
     def _reset_size(self) -> None:
         w = self._win_cfg()

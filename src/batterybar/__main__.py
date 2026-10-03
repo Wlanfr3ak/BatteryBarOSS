@@ -34,17 +34,20 @@ def _setup_logging(settings: dict) -> None:
     cfg = settings.get("logging", {})
     if not cfg.get("enabled", True):
         return
-    config.LOGS_DIR.mkdir(exist_ok=True)
+    config.LOGS_DIR.mkdir(parents=True, exist_ok=True)
     handler = logging.handlers.RotatingFileHandler(
         config.LOGS_DIR / "batterybar.log",
         maxBytes=512 * 1024,
         backupCount=3,
         encoding="utf-8",
     )
+    handlers: list[logging.Handler] = [handler]
+    if sys.stderr is not None:  # None under pythonw / --noconsole builds
+        handlers.append(logging.StreamHandler(sys.stderr))
     logging.basicConfig(
         level=getattr(logging, str(cfg.get("level", "INFO")).upper(), logging.INFO),
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
-        handlers=[handler, logging.StreamHandler(sys.stderr)],
+        handlers=handlers,
     )
 
 

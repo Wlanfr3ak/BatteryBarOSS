@@ -2,13 +2,27 @@
 
 secrets.json (gitignored) is merged under the "secrets" key and never
 written back.
+
+ROOT_DIR: source tree -> repo root; frozen exe (PyInstaller) ->
+%LOCALAPPDATA%\\BatteryBarOSS so installed apps write per-user data
+(settings, stats, logs) to a writable location.
 """
 from __future__ import annotations
 
 import json
+import os
+import sys
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
+
+def _root_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        base = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+        return Path(base) / "BatteryBarOSS"
+    return Path(__file__).resolve().parents[2]
+
+
+ROOT_DIR = _root_dir()
 CONFIG_DIR = ROOT_DIR / "config"
 LOGS_DIR = ROOT_DIR / "logs"
 SETTINGS_FILE = CONFIG_DIR / "settings.json"
@@ -91,6 +105,7 @@ def load_settings() -> dict:
 
 def save_local(patch: dict) -> None:
     """Merge `patch` into settings.local.json (user overrides, gitignored)."""
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     current = _read_json(LOCAL_SETTINGS_FILE)
     merged = _deep_merge(current, patch)
     LOCAL_SETTINGS_FILE.write_text(

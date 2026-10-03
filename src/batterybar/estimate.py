@@ -79,6 +79,7 @@ class TimeEstimator:
             "updated": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         try:
+            Path(self._stats_path).parent.mkdir(parents=True, exist_ok=True)
             Path(self._stats_path).write_text(
                 json.dumps(payload, indent=2) + "\n", encoding="utf-8"
             )

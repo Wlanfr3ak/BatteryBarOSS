@@ -33,6 +33,8 @@ uptime, ...).
 | 2026-10-03 | **Click = cycle display mode** (`default→time→percent→rate→capacity→health` since v0.4.0), drag threshold 6 px | Confirmed BatteryBar behavior (`BatteryBarTextDisplayState` enum found via reflection on `BatteryBar.exe`). |
 | 2026-10-03 | **Battery statics via `root\wmi` + PowerShell one-shot subprocess** (v0.4.0) — NOT via `IOCTL_BATTERY_QUERY_INFORMATION` | `root\wmi` needs COM; a hidden ~300 ms `powershell` subprocess (OS component) is the cheapest stdlib-conformant path. The IOCTL route was investigated and abandoned: `SetupDiEnumDeviceInterfaces` finds no battery device interface on the dev machine (neither `GUID_DEVICE_BATTERY` `72631e55` nor class `72631e54`). |
 | 2026-10-03 | **HP Battery Health Manager via explicit BIOS marker** (v0.4.0): elevated opt-in tool `tools/read_bios_battery_mode.bat` → `root\hp\instrumentedbios` `HP_BIOSSetting` → cache `config/hp_bios.local.json` | User asked for a *unique marker, not inferred from battery values*. HP WMI exists on the machine but returns access denied without elevation — there is no non-privileged marker, so elevation is an explicit documented opt-in. |
+| 2026-10-03 | **Autostart = HKCU Run key + menu toggle** (v0.6.0); distribution = **PyInstaller one-file exe + Inno Setup installer** (`PrivilegesRequired=lowest` → per-user install without UAC) | User decision. Startup-folder shortcut and Task Scheduler rejected (no in-app toggle / overkill). |
+| 2026-10-03 | **Frozen-mode data dir = `%LOCALAPPDATA%\BatteryBarOSS`** | Installed exe can't write next to itself under Program Files; per-user dir keeps settings/stats/logs writable. Source mode keeps repo `config/`. |
 
 ## Environment facts (dev machine)
 
@@ -46,6 +48,9 @@ uptime, ...).
   "HP Accessory WMI Provider" is installed (that IS the `root\hp`
   provider). No unprivileged marker exists, confirmed.
 - Windows 11 (10.0.26100), Git 2.52
+- **Build tools**: PyInstaller 6.22.2 (pip), Inno Setup 6.7.3 at
+  `%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe` (per-user install via
+  `winget install JRSoftware.InnoSetup`)
 - Python 3.14.8 + 3.13 at `C:\Program Files\Python314\` / `Python313\`, `py` launcher present
 - Windows PowerShell 5.1 (no pwsh 7)
 - .NET runtimes 8/9/10 present, **no .NET SDK** (relevant if the stack ever changes)
@@ -72,11 +77,16 @@ src/batterybar/
                  # read_static_info() -> BatteryStaticInfo via root\wmi PS one-shot
   sysinfo.py     # machine info via winreg (HKLM SystemInformation);
                  # HP BHM cache reader (config/hp_bios.local.json)
+  autostart.py   # HKCU Run key enable/disable/is_enabled (winreg)
   estimate.py    # TimeEstimator: rate -> slope -> learned -> driver -> windows, soft-min level
   config.py      # JSON config: defaults <- settings.json <- settings.local.json (+ secrets.json)
   bar_window.py  # Tkinter floating bar: canvas, drag & drop, click-to-cycle display,
                  # context menu, click-through, hotkeys, warning toast, format templates
-tools/           # read_bios_battery_mode.bat/.ps1: elevated HP BIOS battery-mode query
+tools/           # read_bios_battery_mode.*: elevated HP BIOS query;
+                 # build_exe.bat / build_installer.bat: PyInstaller + Inno pipeline
+installer/       # entry.py (PyInstaller entry), setup.iss (Inno script),
+                 # Output/ = built setup.exe (gitignored)
+BatteryBarOSS.pyw# source-tree launcher (autostart target + double-click)
 run.bat          # launch without console (pythonw), sets PYTHONPATH=src
 config/          # settings.json, secrets.example.json (+ gitignored: local/secrets/stats/hp_bios)
 docs/            # REQUIREMENTS, DEPENDENCIES, RESEARCH, BATTERY_ESTIMATION
@@ -149,3 +159,11 @@ shows the details tooltip (FR-21).
   sentinel/empty on this hardware; the real values live in `root\wmi`
   classes — and those are reachable without COM code by spawning
   `powershell -NoProfile -Command Get-WmiObject ...` once in a while.
+- **Python 3.14: `.pyw` is an importable source suffix** — a file
+  `batterybar.pyw` next to `sys.path` entries shadows the `batterybar`
+  package (caused an infinite import recursion; hence the launcher is
+  `BatteryBarOSS.pyw`).
+- **Git Bash mangles `/D` ISCC args** into paths — call
+  `MSYS_NO_PATHCONV=1 ISCC.exe /DAppVersion=...` or run via cmd.
+- Frozen/`pythonw` runs have `sys.stderr = None` — guard
+  `StreamHandler(sys.stderr)` or logging setup fails silently.

@@ -5,6 +5,40 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [Semantic Versioning](https://semver.org/).
 Rules: see `AGENTS.md` sections 1-3.
 
+## [0.6.0] - 2026-10-03
+
+### Added
+
+- **Autostart via HKCU Run key** (FR-15): new context-menu checkbutton
+  "Start with Windows". Writes/removes the `BatteryBarOSS` value under
+  `HKCU\...\Run` — per-user, no admin needed, toggleable any time.
+  Source-tree installs register `pythonw.exe BatteryBarOSS.pyw`;
+  the frozen exe registers itself.
+- **`BatteryBarOSS.pyw` launcher** at repo root (double-clickable,
+  used by the autostart entry). Named distinctly from the package:
+  since Python 3.14, `.pyw` is an importable source suffix — a
+  same-named `batterybar.pyw` would shadow the package (found via an
+  infinite-recursion import failure).
+- **Frozen-exe support**: `config.ROOT_DIR` resolves to
+  `%LOCALAPPDATA%\BatteryBarOSS` when `sys.frozen` — settings, stats,
+  logs and caches go to a writable per-user location after install.
+- **PyInstaller build** (FR-19): `tools/build_exe.bat` produces
+  `dist\BatteryBarOSS.exe` (one-file, noconsole, ~13 MB) —
+  `installer/entry.py` is the entry point.
+- **Inno Setup installer**: `installer\setup.iss` +
+  `tools\build_installer.bat` (injects `__version__` via `/D`) build
+  `installer\Output\BatteryBarOSS-Setup-X.Y.Z.exe` — per-user install
+  (`PrivilegesRequired=lowest`, no UAC), start-menu entries,
+  uninstaller, optional autostart task, optional launch after install.
+
+### Changed
+
+- `sys.stderr`-less environments (pythonw / --noconsole): the stderr
+  log handler is only attached when a console exists — prevents
+  logging errors in the frozen exe.
+- Write paths (`settings.local.json`, stats, logs) now create their
+  parent directories — required for the fresh `%LOCALAPPDATA%` layout.
+
 ## [0.5.1] - 2026-10-03
 
 ### Added
